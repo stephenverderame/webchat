@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bug Reporting</title>
+    <link rel="icon" href="https://dl.dropboxusercontent.com/s/njckv282rzz0k5l/webchatIcon.png?dl=0" />
+    <style>
+        body{
+            background-image: url("http://blog.visme.co/wp-content/uploads/2017/07/50-Beautiful-and-Minimalist-Presentation-Backgrounds-037.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        div.main{
+            color: dodgerblue; 
+            background-color:white; 
+            text-align:center; 
+            box-shadow: 2px 2px 2px 2px grey;
+            margin:10%;
+            margin-top:1%;
+            border-radius:25px;
+            height: 75%;
+            min-height: 200px;
+            max-height: 75%;
+            font-family: 'Action Man';
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <!-- get method the data entered will be visible in the browser via url-->
+    <div class="main">
+        <form method="post" id="mainForm">
+            Subject:
+            <input name="subject" type="text" required/>
+            <br /><br />
+            Message:
+            <br/>
+            <textarea name="mainText" cols="55" rows="10" required></textarea>
+            <br /><br>
+            <input type="submit" value="Submit"/>
+        </form>       
+    </div>
+</body>
+</html>

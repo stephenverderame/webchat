@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebChat</title>
+    <link rel="icon" href="https://dl.dropboxusercontent.com/s/njckv282rzz0k5l/webchatIcon.png?dl=0"/>
+    <style>
+        html{
+            height: 100%;
+            max-height: 100%;
+            width: 100%;
+        }
+        body{
+            height: 100%;
+            width: 100%;
+            max-height: 100%;
+            background-image: url("http://blog.visme.co/wp-content/uploads/2017/07/50-Beautiful-and-Minimalist-Presentation-Backgrounds-037.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        div.chat_area{
+            color: dodgerblue; 
+            background-color:white; 
+            text-align:center; 
+            box-shadow: 2px 2px 2px 2px grey;
+            margin:10%;
+            margin-top:1%;
+            border-radius:25px;
+            height: 75%;
+            min-height: 200px;
+            max-height: 75%;           
+        }
+        div#sidebar{
+            position: fixed;
+            width: 20%;
+            left: 80%;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            height: 100%;
+            background-color: white;
+            color: white;
+            text-align: center;
+            z-index: 2;
+            border-left: 2px solid black;
+
+        }
+        div#sidebarItems{
+            position:absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: white;
+
+        }
+        img.pic{
+            border:2px solid grey; 
+            border-radius:12px; 
+            margin-left:90%; 
+            box-shadow:2px 2px 2px grey; 
+            margin-top:1%; 
+            cursor:pointer;
+            width: 128px;
+            height: 128px;
+        }
+        input.modern{
+            border: 0;
+            border-bottom: 2px solid lightgrey;
+            width: 75%;
+            font-family: Verdana;
+            text-align: center;
+            outline: none;
+        }
+        nav{
+            height: 75%;
+            overflow-y: scroll;
+            margin: 5%;
+            margin-top: 1%;
+            border: 2px solid grey;
+            text-align: left;
+            color: black;
+            outline: none;
+            margin-bottom: 2%;        
+        }
+        ul{
+            word-break: break-word;
+            list-style: none;
+            font-family: 'Open Sans';
+            padding: 0;
+            padding-left: 1%;
+        }
+        div.listItem{
+
+        }
+    </style>
+    <script>
+        var timeOutHandle;
+        var animationState = 0;
+        var open = false;
+        var attempts = 0;
+        var picturesDictionary = {};
+        var socket = new WebSocket("ws://127.0.0.1:8032");
+        socket.binaryType = "arraybuffer";
+        function handleMessage(msg) {
+            if (msg.data instanceof ArrayBuffer) {
+                //TODO
+            } else {
+                var li = document.createElement('li');
+                var regex = RegExp('(http(s*):\/\/)|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d](\.com))|([a-zA-Z\d](\.com)[\/{1,}])|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d]*(\.org))|([a-zA-Z\d](\.org)[\/{1,}])|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d]*(\.gov))|([a-zA-Z\d](\.gov)[\/{1,}])|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d]*(\.net))|((www\.)[\/{1,}]*[a-zA-Z\d]([\/{1,}]|[\.{1,}]))');
+                var picRegex = RegExp('U2V0IFBpY3R1cmU6');
+                var embedPicRegex = RegExp('data:(image)|(video)\/');
+                var num = parseInt(msg.data.toString().substring(0, msg.data.toString().indexOf('#')));
+                var message = msg.data.toString().substring(msg.data.toString().indexOf('#') + 1, msg.data.toString().length);
+                if (picturesDictionary[num]) {
+                    var pic = document.createElement('img');
+                    pic.src = picturesDictionary[num];
+                    pic.style.position = "relative"; 
+                    pic.style.top = "8px";
+                    pic.width = 32;
+                    pic.height = 32;
+ //                   pic.style.border = "1px solid grey";
+                    li.appendChild(pic);
+                    li.appendChild(document.createTextNode(" "));
+                }
+                if (picRegex.test(msg.data)) {
+                    var words = msg.data.toString().split(/\s/);
+                    picturesDictionary[parseInt(words[1])] = words[2];
+                    return;
+                } else if (embedPicRegex.test(message)) {
+                    if (RegExp('data:image').test(message)) {
+                        li.style.maxWidth = "95%";
+                        li.style.maxHeight = "95%";
+                        li.appendChild(document.createTextNode(message.substring(0, message.indexOf(" "))));
+                        li.appendChild(document.createElement('br'));
+                        var pic = document.createElement('img');
+                        pic.style.maxWidth = "100%";
+                        pic.style.maxHeight = "100%";
+                        pic.src = message.substring(message.indexOf(" ") + 1, message.length);
+                        li.appendChild(pic);
+                    } else {
+                        li.appendChild(document.createTextNode(message.substring(0, message.indexOf(" "))));
+                        li.appendChild(document.createElement('br'));
+                        var video = document.createElement('video');
+                        video.src = message.substring(message.indexOf(" ") + 1, message.length);
+                        video.controls = true;
+                        li.appendChild(video);
+                    }
+                } else if (regex.test(message)) {
+                    var pattern = RegExp(' ');
+                    var words = message.split(pattern);
+                    for (var i = 0; i < words.length; i++) {
+                        if (regex.test(words[i])) {
+                            var link = document.createElement('a');
+                            link.href = words[i];
+                            link.innerHTML = words[i];
+                            iframe_src = words[i];
+                            link.target = "_blank";
+                            link.style.color = "blue";
+                            li.appendChild(link);
+                            li.appendChild(document.createTextNode(" "));
+
+                        } else {
+                            li.appendChild(document.createTextNode(words[i] + " "));
+                        }
+                    }
+
+                } else if (num < 0) {
+                    li.style.fontStyle = "italic";
+                    li.appendChild(document.createTextNode(message));
+                }
+                else {
+                    li.appendChild(document.createTextNode(message));
+                }
+                document.getElementById('message_list').appendChild(li);
+                document.getElementById('scroll').scrollTop = document.getElementById('scroll').scrollHeight;
+            }
+        }
+        socket.onmessage = function (msg) {
+            handleMessage(msg);
+        };
+        socket.onopen = function () {
+            open = true;
+            checkUsername();
+            checkPicture();
+        };
+        socket.onclose = function (evt) {
+            if (open == true) {
+                var li = document.createElement('li');
+                li.appendChild(document.createTextNode("Lost Connection to Server!"));
+                li.style.fontStyle = "italic";
+                document.getElementById('message_list').appendChild(li);
+            }
+            open = false;
+        }
+        function sidebarOpen() {
+            document.getElementById("sidebar").style.display = "block";
+            if (open == false) {
+                document.getElementById("reconnection").style.display = "block";
+                document.getElementById("disconnection").style.display = "none";
+            } else {
+                document.getElementById("reconnection").style.display = "none";
+                document.getElementById("disconnection").style.display = "block";
+            }
+        }
+        function sidebarClose() {
+            document.getElementById("sidebar").style.display = "none";
+            document.getElementById("sidebarStatus").style.display = "none";
+        }
+        function sendMessage() {
+            var control = document.getElementById('chatMsg');
+            if (control.value.length > 1000) {
+                alert("We do not allow messages over 1KB to prevent spam");
+                return;
+            }
+            if (open) {
+                socket.send(control.value);
+            }
+            var li = document.createElement('li');
+            var img = document.createElement('img');
+            img.width = 32;
+            img.height = 32;
+//            img.border = "1px solid dodgerblue";
+            img.src = getPicture();
+            img.style.position = "relative";
+            img.style.top = "8px";
+            li.appendChild(img);            
+            var regex = RegExp('(http(s*):\/\/)|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d](\.com))|([a-zA-Z\d](\.com)[\/{1,}])|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d]*(\.org))|([a-zA-Z\d](\.org)[\/{1,}])|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d]*(\.gov))|([a-zA-Z\d](\.gov)[\/{1,}])|([a-zA-Z\d]*[\/{1,}][a-zA-Z\d]*(\.net))|((www\.)[\/{1,}]*[a-zA-Z\d][\/{1,}])');
+            if (regex.test(control.value)) {
+                var pattern = RegExp(' ');
+                var words = control.value.split(pattern);
+                li.appendChild(document.createTextNode("You: "));
+                for (var i = 0; i < words.length; i++) {
+                    if (regex.test(words[i])) {
+                        var link = document.createElement('a');
+                        link.href = words[i];
+                        link.innerHTML = words[i];
+                        link.target = "_blank";
+                        link.style.color = "blue";
+                        li.appendChild(link);
+                        li.appendChild(document.createTextNode(" "));
+
+                    } else {
+                        li.appendChild(document.createTextNode(words[i] + " "));
+                    }
+                }
+
+            } else {
+                li.appendChild(document.createTextNode(" You: " + control.value));
+            }
+            li.style.color = "dodgerblue";
+            document.getElementById('message_list').appendChild(li);
+            document.getElementById('scroll').scrollTop = document.getElementById('scroll').scrollHeight;
+            control.value = "";
+//            control.blur();
+        }
+        function sendUsername() {
+            var control = document.getElementById('sidebarInput');
+            var name = "U2V0IFVzZXJuYW1lOg== " + control.value;
+            if (open) {
+                socket.send(name);
+            }
+            var li = document.createElement('li');
+            li.appendChild(document.createTextNode("Username Changed!"));
+            li.style.fontStyle = "italic";
+            document.getElementById('message_list').appendChild(li);
+            localStorage.username = name;
+            control.value = "";
+            control.blur();
+        }
+        function checkUsername() {
+            if (localStorage.username) {
+                if(open)
+                    socket.send(localStorage.username);
+                document.getElementById('sidebarInput').placeholder = String(localStorage.username).split(/\s/)[1];
+            }
+        }
+        function checkReadyState() {
+            setTimeout(function () {
+                if (socket.readyState == 1) {
+                    var li = document.createElement('li');
+                    li.appendChild(document.createTextNode("Connected to Server!"));
+                    li.style.fontStyle = "italic";
+                    document.getElementById('message_list').appendChild(li);
+                    attempts = 0;
+                } else if (socket.readyState == 0) {
+                    var text = "";
+                    switch (animationState) {
+                        case 0:
+                            text = "Connecting";
+                            break;
+                        case 1:
+                            text = "Connecting.";
+                            break;
+                        case 2:
+                            text = "Connecting..";
+                            break;
+                        case 3:
+                            text = "Connecting...";
+                            break;
+                        default:
+                            break;
+                    }
+                    if (++animationState > 3) {
+                        animationState = 0;
+                    }
+                    var list = document.getElementById('message_list');
+                    list.removeChild(list.lastChild);
+                    var li = document.createElement('li');
+                    li.appendChild(document.createTextNode(text));
+                    li.style.fontStyle = "italic";
+                    list.appendChild(li);
+                    attempts++;
+                    if (attempts > 40) {
+                        var lii = document.createElement('li');
+                        lii.appendChild(document.createTextNode("Max Wait Duration Reached: Cannot Connect to Server!"));
+                        lii.style.fontStyle = "italic";
+                        list.appendChild(lii);
+                        attempts = 0;
+                        open = false;
+                        socket.close();
+                    } else {
+                        checkReadyState();
+                    }
+                } else if (socket.readyState == 3) {
+                    var li = document.createElement('li');
+                    li.appendChild(document.createTextNode("Connection Failed!"));
+                    li.style.fontStyle = "italic";
+                    document.getElementById('message_list').appendChild(li);
+                    attempts = 0;
+                }
+            }, 500);
+        }
+        function reconnectFunction() {
+            if (!window.WebSocket) {
+                alert("Your browser does not support websockets!");
+            }
+            socket.close();
+            socket = new WebSocket("ws://127.0.0.1:8032");
+            socket.binaryType = "arraybuffer";
+            socket.onmessage = function (msg) {
+                handleMessage(msg);
+            };
+            socket.onopen = function () {
+                open = true;
+                checkPicture();
+                checkUsername();
+            };
+            socket.onclose = function (evt) {
+                if (open == true) {
+                    var li = document.createElement('li');
+                    li.appendChild(document.createTextNode("Lost Connection to Server!"));
+                    li.style.fontStyle = "italic";
+                    document.getElementById('message_list').appendChild(li);
+                }
+                open = false;
+            }
+            checkReadyState();
+        }
+        function getPicture() {
+            if (localStorage.profilePic) {
+                return localStorage.profilePic;
+            }
+            return "http://profilepics.xyz/wp-content/uploads/2018/01/Life-profile-pics-latest.png";
+        }
+        function checkPicture() {
+            if (open && localStorage.profilePic) {
+                socket.send("U2V0IFBpYzo=" + "#" + localStorage.profilePic);
+            }
+        }
+        function disconnectFunction() {
+            open = false;
+            var list = document.getElementById('message_list');
+            var li = document.createElement('li');
+            li.appendChild(document.createTextNode("Disconnected!"));
+            li.style.fontStyle = "italic";
+            list.appendChild(li);
+            sidebarClose();
+            socket.close();
+
+        }
+    </script>
+</head>
+<body>
+    <div style="display:none;" id="sidebar">
+        <div id="sidebarItems">
+            <svg width="100%" height="10%" style="cursor:pointer">
+                <rect id="button" width="100%" height="100%" style="fill:dodgerblue" onmousemove="document.getElementById('button').style.fill = 'deepskyblue';" onmouseout="document.getElementById('button').style.fill = 'dodgerblue';" onmousedown="sidebarClose();"></rect>
+                <text style="fill:white;" font-size="20" font-family="Verdana" x="40%" y="55%" onmousemove="document.getElementById('button').style.fill = 'deepskyblue';" onmouseout="document.getElementById('button').style.fill = 'dodgerblue';" onmousedown="sidebarClose();">CLOSE &times;</text>
+            </svg>
+            <br />
+            <img id="sidebarProfile" class="pic" style="margin:initial;" src="http://profilepics.xyz/wp-content/uploads/2018/01/Life-profile-pics-latest.png" onmouseover="document.getElementById('sidebarProfile').style.border = '2px solid dodgerblue';" onmouseout="document.getElementById('sidebarProfile').style.border = '2px solid grey';"/>
+            <script>
+                document.getElementById("sidebarProfile").onclick = function (event) {
+                    var event = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    document.getElementById('imageUpload').dispatchEvent(event);
+                }
+            </script>
+            <input type="file" id="imageUpload" accept=".jpg,.png,.gif,.bmp,.ico" style="display:none;"/>
+            <script>
+                document.getElementById('imageUpload').onchange = function (event) {
+                    var files = event.target.files;
+                    if (!files[0].type.match('image.*')) return;
+                    if (files[0].size > 1000000) {
+                        alert("For efficiency, we do not allow profile pics over 1MB");
+                        return;
+                    }
+                    var fr = new FileReader();
+                    fr.onload = (function (file) {
+                        return function (e) {
+                            document.getElementById('sidebarProfile').src = e.target.result;
+                            document.getElementById('profile').src = e.target.result;
+                            if (open) {
+                                socket.send("U2V0IFBpYzo=" + "#" + e.target.result.toString());
+                            }
+                            localStorage.profilePic = e.target.result.toString();
+                        }
+                    })(files[0]);
+                    fr.readAsDataURL(files[0]);
+                    
+                }
+            </script>
+            <br />
+            <br />
+            <br />
+            <br />
+            <input id="sidebarInput" type="text" class="modern" placeholder="Username" onfocus="document.getElementById('sidebarInput').style.borderBottom = '2px solid dodgerblue';" onblur="document.getElementById('sidebarInput').style.borderBottom = '2px solid lightgrey';"/>
+            <script>
+                document.getElementById("sidebarInput").onkeydown = function (event) {
+                    if (event.key == "Enter") {
+                        sendUsername();
+                    }
+                }
+                checkUsername();
+            </script>
+            <br />
+            <p id="sidebarStatus" style="display:none; font-style:italic;"></p>
+            <svg id="reconnection" width="100%" height="10%" style="cursor:pointer; position:absolute; top:90%; bottom:100%;" display="none">
+                <rect id="reconnectButton" width="100%" height="100%" style="fill:dodgerblue" onmousemove="document.getElementById('reconnectButton').style.fill = 'deepskyblue';" onmouseout="document.getElementById('reconnectButton').style.fill = 'dodgerblue';" onmousedown="reconnectFunction();"></rect>
+                <text style="fill:white;" font-size="20" font-family="Verdana" x="30%" y="55%" onmousemove="document.getElementById('reconnectButton').style.fill = 'deepskyblue';" onmouseout="document.getElementById('reconnectButton').style.fill = 'dodgerblue';" onmousedown="reconnectFunction();">Attempt Reconnect</text>
+            </svg>
+ <!--       <h6 style="color:grey; font-family:Verdana;">Disable Profile Pics:</h6>
+            <input type="checkbox" id="disableProfiles" title="Disable Profile Pics" style="position:relative; top:25%;"/>      -->     
+            <svg id="disconnection" width="100%" height="10%" style="cursor:pointer; position:absolute; top:90%; bottom:100%;" display="none">
+                <rect id="disconnectButton" width="100%" height="100%" style="fill:dodgerblue" onmousemove="document.getElementById('disconnectButton').style.fill = 'deepskyblue';" onmouseout="document.getElementById('disconnectButton').style.fill = 'dodgerblue';" onmousedown="disconnectFunction();"></rect>
+                <text style="fill:white;" font-size="20" font-family="Verdana" x="35%" y="55%" onmousemove="document.getElementById('disconnectButton').style.fill = 'deepskyblue';" onmouseout="document.getElementById('disconnectButton').style.fill = 'dodgerblue';" onmousedown="disconnectFunction();">Disconnect</text>
+            </svg>
+        </div>
+    </div>
+    <img id="profile" class="pic" src="http://profilepics.xyz/wp-content/uploads/2018/01/Life-profile-pics-latest.png" onclick="sidebarOpen();"/>
+    <script>
+        document.getElementById("profile").src = getPicture();
+        document.getElementById("sidebarProfile").src = getPicture();
+    </script>
+    <div class="chat_area" id="ca">
+        <h1 style="font-family:'Action Man'">WebChat</h1>
+        <nav id="scroll">
+            <ul id="message_list">
+            </ul>
+        </nav>
+        <input id="chatMsg" class="modern" onfocus="document.getElementById('chatMsg').style.borderBottom = '2px solid dodgerblue';" onblur="document.getElementById('chatMsg').style.borderBottom = '2px solid lightgrey';" placeholder="Message"/>
+        <script>
+            document.getElementById('chatMsg').onkeydown = function (event) {
+                if (event.key == "Enter") {
+                    sendMessage();
+                }
+            }
+            checkReadyState();
+        </script>
+        <br />
+        <br />
+        <img id="attachFile" src="https://cdn2.iconfinder.com/data/icons/medicine-6/512/attach-512.png" width="32" height="32" style="cursor:pointer;"/>
+        <input id="fileInput" type="file" style="display:none;" accept=".jpg,.png,.gif,.bmp,.ico,.mp4"/>
+        <script>
+            document.getElementById('attachFile').onmouseover = function (event) {
+                document.getElementById('attachFile').style.backgroundColor = "dodgerblue";
+            }
+            document.getElementById('attachFile').onmouseout = function (event) {
+                document.getElementById('attachFile').style.backgroundColor = "transparent";
+            }
+            document.getElementById('attachFile').onclick = function (evt) {
+                var event = new MouseEvent('click', {
+                    view: window,
+                    bubbles: true,
+                    cancelable: true
+                });
+                document.getElementById('fileInput').dispatchEvent(event);
+            }
+            document.getElementById('fileInput').onchange = function (event) {
+                var files = event.target.files;
+                if (files[0].size > 10000000) {
+                    alert("For efficiency reasons, we do not allow files over 10MB to be sent in chat.");
+                    return;
+                }
+                var fr = new FileReader();
+                fr.onload = (function (file) {
+                    return function (e) {
+                        if (open) {
+                            socket.send(e.target.result.toString());
+                        }
+                        var li = document.createElement('li');
+                        li.style.maxHeight = "95%";
+                        li.style.maxWidth = "95%";
+                        li.style.color = "dodgerblue";
+                        var profilePic = document.createElement('img');
+                        profilePic.width = 32;
+                        profilePic.height = 32;
+//                        profilePic.border = "1px solid dodgerblue";
+                        profilePic.style.position = "relative";
+                        profilePic.style.top = "8px";
+                        profilePic.src = getPicture();
+                        li.appendChild(profilePic);
+                        li.appendChild(document.createTextNode(" You: "));
+                        li.appendChild(document.createElement('br'));
+                        if (file.type.match("image.*")) {
+                            var pic = document.createElement('img');
+                            pic.src = e.target.result;
+                            pic.style.maxWidth = "100%";
+                            pic.style.maxHeight = "100%";
+                            li.appendChild(pic);
+                        } else {
+                            var video = document.createElement('video');
+                            video.src = e.target.result;
+                            video.controls = true;
+                            li.appendChild(video);
+                        }
+                        document.getElementById('message_list').appendChild(li);
+                    }
+                })(files[0]);
+                fr.readAsDataURL(files[0]);
+                document.getElementById('scroll').scrollTop = document.getElementById('scroll').scrollHeight;
+            }
+        </script>       
+    </div>
+    <br />
+    <br />
+    <br />
+    <svg id="bugReport" width="10%" height="5%" style="cursor:pointer; position:absolute; top:100%; left:45%; right:55%; bottom:100%">
+        <rect id="bugButton" width="100%" height="100%" style="fill:dodgerblue" onmousemove="document.getElementById('bugButton').style.fill = 'deepskyblue';" onmouseout="document.getElementById('bugButton').style.fill = 'dodgerblue';" onmousedown="location.href='bug'"></rect>
+        <text style="fill:white;" font-size="20" font-family="Verdana" x="15%" y="55%" onmousemove="document.getElementById('bugButton').style.fill = 'deepskyblue';" onmouseout="document.getElementById('bugButton').style.fill = 'dodgerblue';" onmousedown="location.href='bug'">Report a Bug</text>
+    </svg>
+</body>
+</html>
