@@ -1,4 +1,5 @@
-#pragma once
+#ifndef WEBSOCKETS_H
+#define WEBSOCKETS_H
 /*libcryptoMD.lib
 libcryptoMDd.lib
 libcryptoMT.lib
@@ -45,3 +46,4 @@ public:
 	WebsockListener(unsigned short port) : Listener(port) {};
 	WebsockClient accept(int & error);
 };
+#endif

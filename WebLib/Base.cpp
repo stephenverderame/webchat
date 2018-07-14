@@ -37,18 +37,25 @@ bool Socket::isInFD(FD_SET * fd)
 
 void Socket::nagle(int enable)
 {
+#ifdef _WIN32
 	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&enable, sizeof(enable));
+#endif
 }
 
 void Socket::nonblocking(int enable)
 {
+#ifdef _WIN32
 	ioctlsocket(sock, FIONBIO, (u_long*)&enable);
+#else
+	int flags = fcntl(sock, F_GETFL, 0);
+	fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+#endif
 }
 
 int Socket::getErrorCode()
 {
 	int errCode;
-	int size = 4;
+	unsigned int size = 4;
 	getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&errCode, &size);
 	return errCode;
 }
@@ -57,16 +64,16 @@ std::string Socket::getIpAddress()
 {
 	SOCKADDR_IN address;
 	address = addrData;
-	int length = sizeof(address);
+	unsigned int length = sizeof(address);
 	getpeername(sock, (SOCKADDR*)&address, &length);
 	return std::string(inet_ntoa(address.sin_addr));
 }
 
-void Socket::close()
+void Socket::closeConnection()
 {
 	closesocket(sock);
 }
-
+#ifdef _WIN32
 Winsock::~Winsock()
 {
 	WSACleanup();
@@ -75,13 +82,13 @@ Winsock::Winsock() {
 	WSAData data;
 	WSAStartup(MAKEWORD(2, 1), &data);
 }
-
+#endif //_WIN32
 Client::Client(SOCKET s)
 {
 	sock = s;
 }
 
-void Client::close()
+void Client::closeConnection()
 {
 	closed = true;
 	closesocket(sock);
@@ -111,4 +118,23 @@ Listener::Listener(unsigned short port)
 	addrData.sin_addr.s_addr = INADDR_ANY;
 	bind(sock, (SOCKADDR*)&addrData, sizeof(addrData));
 	listen(sock, SOMAXCONN);
+}
+long long ntohll(long long a){
+	long long ret;
+	unsigned char * out = (unsigned char *)&ret;
+	out[0] = a >> 56;
+	out[1] = a >> 48;
+	out[2] = a >> 40;
+	out[3] = a >> 32;
+	out[4] = a >> 24;
+	out[5] = a >> 16;
+	out[6] = a >> 8;
+	out[7] = a;
+	return ret;
+	
+}
+int fopen_s(FILE ** stream, const char * filename, const char * mode){
+	*stream = fopen(filename, mode);
+	if(*stream != NULL) return 0;
+	return 1;
 }

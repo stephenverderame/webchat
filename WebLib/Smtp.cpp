@@ -32,7 +32,7 @@ int SmtpClient::sendMessage(char * recp, char * subject, char * message)
 	ret = send(sock, msg, strlen(msg), 0);
 	if (ret == SOCKET_ERROR) return -3;
 	if(recv(sock, buffer, sizeof(buffer), 0) == SOCKET_ERROR) return -5;
-	sprintf_s(msg, 10000, "STARTTLS \r\n");
+	sprintf_s(msg, 10000, "STARTTLS \r\n", "");
 	if (send(sock, msg, strlen(msg), 0) == SOCKET_ERROR) return -4;
 	if (recv(sock, buffer, sizeof(buffer), 0) == SOCKET_ERROR) return -6;
 
@@ -44,7 +44,7 @@ int SmtpClient::sendMessage(char * recp, char * subject, char * message)
 	if(SSL_write(ssl, msg, strlen(msg)) <= 0) return -11;
 	if(SSL_read(ssl, buffer, sizeof(buffer)) <= 0) return -12;
 
-	sprintf_s(msg, 10000, "AUTH LOGIN\r\n");
+	sprintf_s(msg, 10000, "AUTH LOGIN\r\n", "");
 	SSL_write(ssl, msg, strlen(msg));
 	SSL_read(ssl, buffer, sizeof(buffer));
 
@@ -64,7 +64,7 @@ int SmtpClient::sendMessage(char * recp, char * subject, char * message)
 	SSL_write(ssl, msg, strlen(msg));
 	SSL_read(ssl, buffer, sizeof(buffer));
 
-	sprintf_s(msg, 10000, "DATA \r\n");
+	sprintf_s(msg, 10000, "DATA \r\n", "");
 	SSL_write(ssl, msg, strlen(msg));
 	SSL_read(ssl, buffer, sizeof(buffer));
 
@@ -77,11 +77,11 @@ int SmtpClient::sendMessage(char * recp, char * subject, char * message)
 		if (ret <= 0) return -60;
 		dataSent += ret;
 	}
-	sprintf_s(msg, 10000, "\r\n.\r\n");
+	sprintf_s(msg, 10000, "\r\n.\r\n", "");
 	SSL_write(ssl, msg, strlen(msg));
 	SSL_read(ssl, buffer, sizeof(buffer));
 
-	sprintf_s(msg, 10000, "QUIT\r\n");
+	sprintf_s(msg, 10000, "QUIT\r\n", "");
 	SSL_write(ssl, msg, strlen(msg));
 	SSL_read(ssl, buffer, sizeof(buffer));
 

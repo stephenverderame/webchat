@@ -174,7 +174,7 @@ int WebsockClient::readData(char *& output, fsize_t & payloadLength, int & opcod
 			}
 			dataSent += ds;
 		}
-		close();
+		closeConnection();
 		delete[]  buf;
 		return ws_close;
 	}
@@ -307,7 +307,11 @@ int WebsockClient::handshake(std::string acceptedProtocols)
 		m = std::regex_replace(m, whitespace, "");
 		printf("\n Found key: %s \n", m.c_str());
 		char encoding[1500];
+#ifdef _WIN32
 		sprintf_s(encoding, 1500, "%s%s", m.c_str(), "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+#else
+		sprintf(encoding, "%s%s", m.c_str(), "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
+#endif
 		char proc[100];
 		if (acceptedProtocols.size() > 0) 
 		{
@@ -353,7 +357,7 @@ int WebsockClient::handshake(std::string acceptedProtocols)
 }
 WebsockClient WebsockListener::accept(int & error)
 {
-	int size = sizeof(addrData);
+	unsigned int size = sizeof(addrData);
 	printf("About to accept client \n");
 	SOCKET connection = ::accept(sock, (SOCKADDR*)&addrData, &size);
 	if (connection != INVALID_SOCKET) {

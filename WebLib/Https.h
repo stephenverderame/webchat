@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HTTPS_H
+#define HTTPS_H
 #include "Http.h"
 #include "SSL.h"
 #define IS_SSL_ERROR(code) ((code) <= -50)
@@ -17,5 +18,6 @@ public:
 	int sendMessage(char * msg);
 	int getMessage(HttpFrame & frame);
 	void changeHost(char * hostname, unsigned short port = STD_HTTPS_PORT);
-	void close();
+	void closeConnection();
 };
+#endif

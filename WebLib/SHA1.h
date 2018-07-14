@@ -1,4 +1,3 @@
-#pragma once
 #ifndef SHA1_H
 #define SHA1_H
 #include <stdio.h>

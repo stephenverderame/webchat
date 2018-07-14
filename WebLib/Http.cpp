@@ -210,7 +210,7 @@ void HttpFrame::composeRequest() {
 HttpClient HttpListener::accept(int & error)
 {
 
-	int size = sizeof(addrData);
+	unsigned int size = sizeof(addrData);
 	SOCKET connection = ::accept(sock, (SOCKADDR*)&addrData, &size);
 	if (connection == INVALID_SOCKET) error = -1;
 	else error = 0;

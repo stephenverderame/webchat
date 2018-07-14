@@ -1,7 +1,8 @@
-#pragma once
-#include "openssl\ssl.h"
-#include "openssl\err.h"
-#include "openssl\bio.h"
+#ifndef SSL_H
+#define SSL_H
+#include "openssl//ssl.h"
+#include "openssl//err.h"
+#include "openssl//bio.h"
 
 class openssl {
 public:
@@ -10,3 +11,4 @@ public:
 		SSL_load_error_strings();
 	}
 };
+#endif

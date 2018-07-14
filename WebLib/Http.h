@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HTTP_H
+#define HTTP_H
 #include "Base.h"
 #include <cstdio>
 #include <regex>
@@ -67,3 +68,4 @@ public:
 	int connectClient();
 
 };
+#endif

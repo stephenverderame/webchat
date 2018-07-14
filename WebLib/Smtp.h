@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SMTP_H
+#define SMTP_H
 #include "Base.h"
 #include "Base64.h"
 #include "SSL.h"
@@ -17,3 +18,4 @@ public:
 	void login(char * user, char * password);
 	int sendMessage(char * recp, char * subject, char * message);
 };
+#endif

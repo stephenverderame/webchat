@@ -92,7 +92,7 @@ void HttpsClient::changeHost(char * hostname, unsigned short port)
 	sock = socket(AF_INET, SOCK_STREAM, NULL);
 }
 
-void HttpsClient::close()
+void HttpsClient::closeConnection()
 {
 	SSL_free(ssl);
 	SSL_CTX_free(ctx);
