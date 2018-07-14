@@ -181,7 +181,7 @@ int main() {
 					delete[] msg;
 				}
 				else if (code == ws_close) {
-					clients[i].close();
+					clients[i].closeConnection();
 					clients.erase(i);
 					//					images.erase(i);
 					printf("Client %d disconnected! \n", i);
@@ -198,7 +198,7 @@ int main() {
 				}
 				else if (!WS_OK(code)) {
 					printf("Error code: %d \n", code);
-					(*it).second.close();
+					(*it).second.closeConnection();
 					clients.erase(i);
 					usernames.erase(i);
 				}

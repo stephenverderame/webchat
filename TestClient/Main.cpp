@@ -21,7 +21,7 @@ int main() {
 	test.getMessage(frame);
 	HtmlFile testFile(frame);
 	testFile.saveFile("test.html");
-	test.close();
+	test.closeConnection();
 
 	HttpsClient https("stackoverflow.com");
 	if(https.connectClient() != 0) printf("Connection error! \n");
@@ -39,7 +39,7 @@ int main() {
 	if (code != 0) printf("Getting error %d \n", code);
 	HtmlFile test2(frame2);
 	test2.saveFile("test2.html");
-	https.close();
+	https.closeConnection();
 	getchar();
 	return 0;
 }

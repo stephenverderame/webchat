@@ -209,8 +209,11 @@ void HttpFrame::composeRequest() {
 }
 HttpClient HttpListener::accept(int & error)
 {
-
+#ifdef _WIN32
+	int size = sizeof(addrData);
+#else
 	unsigned int size = sizeof(addrData);
+#endif
 	SOCKET connection = ::accept(sock, (SOCKADDR*)&addrData, &size);
 	if (connection == INVALID_SOCKET) error = -1;
 	else error = 0;

@@ -357,7 +357,11 @@ int WebsockClient::handshake(std::string acceptedProtocols)
 }
 WebsockClient WebsockListener::accept(int & error)
 {
+#ifdef _WIN32
+	int size = sizeof(addrData);
+#else
 	unsigned int size = sizeof(addrData);
+#endif
 	printf("About to accept client \n");
 	SOCKET connection = ::accept(sock, (SOCKADDR*)&addrData, &size);
 	if (connection != INVALID_SOCKET) {

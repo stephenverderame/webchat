@@ -55,7 +55,11 @@ void Socket::nonblocking(int enable)
 int Socket::getErrorCode()
 {
 	int errCode;
+#ifdef _WIN32
+	int size = 4;
+#else
 	unsigned int size = 4;
+#endif
 	getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&errCode, &size);
 	return errCode;
 }
@@ -64,7 +68,11 @@ std::string Socket::getIpAddress()
 {
 	SOCKADDR_IN address;
 	address = addrData;
+#ifdef _WIN32
+	int length = sizeof(address);
+#else
 	unsigned int length = sizeof(address);
+#endif
 	getpeername(sock, (SOCKADDR*)&address, &length);
 	return std::string(inet_ntoa(address.sin_addr));
 }
@@ -119,6 +127,7 @@ Listener::Listener(unsigned short port)
 	bind(sock, (SOCKADDR*)&addrData, sizeof(addrData));
 	listen(sock, SOMAXCONN);
 }
+#ifndef _WIN32
 long long ntohll(long long a){
 	long long ret;
 	unsigned char * out = (unsigned char *)&ret;
@@ -138,3 +147,4 @@ int fopen_s(FILE ** stream, const char * filename, const char * mode){
 	if(*stream != NULL) return 0;
 	return 1;
 }
+#endif
