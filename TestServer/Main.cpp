@@ -1,5 +1,5 @@
 #include <WebSocket.h>
-#include <Http.h>
+#include <Https.h>
 #include <Smtp.h>
 #include <map>
 typedef unsigned int ID;
@@ -12,9 +12,10 @@ int main() {
 	Winsock data;
 	openssl sslData;
 	WebsockListener listener(8032);
-	HttpListener http;
-	http.nonblocking(ENABLE);
-	http.nagle(DISABLE);
+	HttpListener https;
+//	https.loadCert("key.pem", "cert.pem");
+	https.nonblocking(ENABLE);
+//	https.nagle(DISABLE);
 	FD read;
 	HtmlFile chatFile("chat.html");
 	HtmlFile bugFile("bug.html");
@@ -22,7 +23,7 @@ int main() {
 	while (true) {
 		read.clear();
 		read.add(&listener);
-		read.add(&http);
+		read.add(&https);
 		for (auto it = clients.begin(); it != clients.end(); it++)
 			read.add(&(*it).second);
 
@@ -65,17 +66,19 @@ int main() {
 				printf("Could not accept websock listener with code: %d and %d \n", code, data.lastError());
 			}
 		}
-		if (read.inSet(&http)) {
+		if (read.inSet(&https)) {
+			printf("Https data \n");
 			int code;
-			HttpClient connection = http.accept(code);
+			HttpClient connection = https.accept(code);
 			if (code == 0) {
 				FD tempFd;
 				tempFd.clear();
 				tempFd.add(&connection);
 				timeval t;
 				t.tv_sec = 5; t.tv_usec = 0;
-				FD::waitUntil(&t, &tempFd);
+				FD::waitUntil(&t, &tempFd); 
 				HttpFrame frame;
+//				printf("Getting ssl message \n");
 				code = connection.getMessage(frame);
 				if (code == 0) {
 					printf("Received:\n%s\n", frame.data.c_str());
@@ -108,12 +111,17 @@ int main() {
 						connection.sendMessage(response);
 					}
 				}
+				else {
+					printf("Reading error %d \n", code);
+					printf("Got error %d \n", ERR_get_error());
+					printf("WinsockError %d \n", WSAGetLastError());
+				}
 
 			}
 			else {
-				printf("Accept failure \n");
+				printf("Accept failure %d \n", code);
 			}
-
+			connection.closeConnection();
 		}
 		for (auto it = clients.begin(); it != clients.end(); it++) {
 			ID i = (*it).first;

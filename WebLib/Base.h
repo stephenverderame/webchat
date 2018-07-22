@@ -26,6 +26,7 @@ public:
 	~Winsock();
 	inline int lastError() { return WSAGetLastError(); }
 };
+#define getLastError() WSAGetLastError()
 #else
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -41,6 +42,7 @@ public:
 #include <limits.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <errno.h>
 typedef unsigned int SOCKET;
 typedef sockaddr SOCKADDR;
 typedef sockaddr_in SOCKADDR_IN;
@@ -51,7 +53,8 @@ typedef SOCKADDR* PSOCKADDR;
 #define SOCKET_ERROR -1
 #define INVALID_SOCKET (~0)
 #define ioctlsocket(s, cmd, arg) ioctl(s, cmd, arg)
-#define WSAGetLastError() 1
+#define getLastError() errno
+#define WSAGetLastError() getLastError()
 #define sprintf_s(buffer, size, format, ...) sprintf(buffer, format, __VA_ARGS__)
 #define memcpy_s(dest, destSize, source, sourceSize) memcpy(dest, source, sourceSize)
 inline long long ntohll(long long a);
@@ -101,5 +104,4 @@ public:
 	static void wait(FD * read, FD * write = nullptr, FD * except = nullptr);
 	static void waitUntil(timeval * t, FD * read, FD * write = nullptr, FD * except = nullptr);
 };
-
 #endif /*BASE_H*/

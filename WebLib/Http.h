@@ -23,6 +23,7 @@
 #define HTTP_PUT "PUT"
 class HttpListener;
 class HttpClient;
+class HttpsClient;
 
 struct HttpFrame {
 	std::string data;
@@ -38,6 +39,7 @@ struct HttpFrame {
 
 class HtmlFile {
 	friend class HttpClient;
+	friend class HttpsClient;
 private:
 	char * data;
 	size_t size;

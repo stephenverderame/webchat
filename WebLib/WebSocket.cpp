@@ -94,7 +94,7 @@ int WebsockClient::sendData(char * payload, fsize_t payloadSize, int dataType, b
 		ds = send(sock, frame + dataSent, (2 + sizeofsize + payloadSize) - dataSent, NULL);
 		if (ds == SOCKET_ERROR) {
 			delete[] frame;
-			return WSAGetLastError();
+			return getLastError();
 		}
 		dataSent += ds;
 	}
@@ -110,15 +110,15 @@ int WebsockClient::readData(char *& output, fsize_t & payloadLength, int & opcod
 	fsize_t dr = 0;
 	fsize_t firstLength = 0;
 	if (ioctlsocket(sock, FIONREAD, &package_size) == SOCKET_ERROR) {
-		printf("Error reading: %d \n", WSAGetLastError());
-		return WSAGetLastError();
+		printf("Error reading: %d \n", getLastError());
+		return getLastError();
 	}
 	if (package_size <= 0) return 1;
 	char * buf = new char[package_size + 1];
 	dr = recv(sock, buf, package_size, NULL);
 	if (dr == SOCKET_ERROR) {
 		delete[] buf;
-		return WSAGetLastError();
+		return getLastError();
 	}
 	*(buf + package_size) = '\0';
 	fsize_t actualSize = decodeTotalFrameSize(buf);
@@ -136,7 +136,7 @@ int WebsockClient::readData(char *& output, fsize_t & payloadLength, int & opcod
 			dr = recv(sock, buf + dataRead, actualSize - dataRead, NULL);
 			if (dr == SOCKET_ERROR) {
 				delete[] buf;
-				return WSAGetLastError();
+				return getLastError();
 			}
 			else if (dr == 0) break;
 			dataRead += dr;
@@ -155,7 +155,7 @@ int WebsockClient::readData(char *& output, fsize_t & payloadLength, int & opcod
 			ds = send(sock, buf + dataSent, package_size - dataSent, NULL);
 			if (ds == SOCKET_ERROR) {
 				delete[] buf;
-				return WSAGetLastError();
+				return getLastError();
 			}
 			dataSent += ds;
 		}
@@ -170,7 +170,7 @@ int WebsockClient::readData(char *& output, fsize_t & payloadLength, int & opcod
 			ds = send(sock, buf + dataSent, package_size - dataSent, NULL);
 			if (ds == SOCKET_ERROR) {
 				delete[] buf;
-				return WSAGetLastError();
+				return getLastError();
 			}
 			dataSent += ds;
 		}
@@ -207,7 +207,7 @@ int WebsockClient::readData(char *& output, fsize_t & payloadLength, int & opcod
 			dr = recv(sock, contBuf, package_size, NULL);
 			if (dr == SOCKET_ERROR) {
 				delete[] contBuf;
-				return WSAGetLastError();
+				return getLastError();
 			}
 			fsize_t actualSize = decodeTotalFrameSize(contBuf);
 			if (package_size < actualSize) {
@@ -223,7 +223,7 @@ int WebsockClient::readData(char *& output, fsize_t & payloadLength, int & opcod
 					dr = recv(sock, contBuf + dataRead, actualSize - dataRead, NULL);
 					if (dr == SOCKET_ERROR) {
 						delete[] contBuf;
-						return WSAGetLastError();
+						return getLastError();
 					}
 					else if (dr == 0) break;
 					dataRead += dr;
@@ -279,14 +279,14 @@ int WebsockClient::handshake(std::string acceptedProtocols)
 	time.tv_sec = 5;
 	time.tv_usec = 0;
 	if (select(0, &tempRead, NULL, NULL, &time) == SOCKET_ERROR)
-		return WSAGetLastError();
+		return getLastError();
 	if (ioctlsocket(sock, FIONREAD, &size) == SOCKET_ERROR)
-		return WSAGetLastError();
+		return getLastError();
 	char * buffer = new char[size + 1];
 	size_t dataRead = 0;
 	while (dataRead < size) {
 		size_t r = recv(sock, buffer + dataRead, size - dataRead, NULL);
-		if (r == SOCKET_ERROR) return WSAGetLastError() + 1000000;
+		if (r == SOCKET_ERROR) return getLastError() + 1000000;
 		dataRead += r;
 	}
 	*(buffer + size) = '\0';
@@ -347,7 +347,7 @@ int WebsockClient::handshake(std::string acceptedProtocols)
 		else
 			sprintf_s(response, 3000, "HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\nSec-WebSocket-Accept: %s\r\n\r\n", encode.c_str());
 		if(send_s(response) == SOCKET_ERROR)
-			return WSAGetLastError();
+			return getLastError();
 		printf("Sent Response:\n%s \n", response);
 	}
 	else {
