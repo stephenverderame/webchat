@@ -44,7 +44,7 @@ private:
 	char * data;
 	size_t size;
 public:
-	~HtmlFile() { if(size > 0) delete[] data; }
+	void del() { delete[] data; }
 	void loadFile(const char * filename);
 	HtmlFile() {};
 	HtmlFile(const char * filename) { loadFile(filename); }
@@ -63,6 +63,7 @@ public:
 	HttpClient() : Client() {};
 	HttpClient(char * hostname, unsigned short port = STD_HTTP_PORT);
 	int getMessage(HttpFrame & frame);
+	int getMessage_b(HttpFrame & frame);
 	int sendHtmlFile(HtmlFile file);
 	int sendMessage(HttpFrame msg);
 	int sendMessage(char * rawMsg);

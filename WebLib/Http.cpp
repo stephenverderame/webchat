@@ -135,6 +135,57 @@ int HttpClient::getMessage(HttpFrame & frame)
 	return 0;
 }
 
+int HttpClient::getMessage_b(HttpFrame & frame)
+{
+	clock_t startTime = clock();
+	std::stringstream ss;
+	do {
+		char buf[501];
+		int r = recv(sock, buf, 500, NULL);
+		if (r == SOCKET_ERROR) return -1;
+		if (clock() - startTime > 10 * CLOCKS_PER_SEC) return -2;
+		buf[r] = '\0';
+		ss << buf;
+	} while (ss.str().find('\r\n\r\n') == std::string::npos);
+	if (ss.str().find("Content-Length:") != std::string::npos) {
+		size_t headerSize = ss.str().find("\r\n\r\n") + 4;
+		std::string l = ss.str().substr(ss.str().find("Content-Length:") + 15);
+		l = l.substr(0, l.find("\r\n"));
+		size_t len = std::stoi(l);
+		size_t totalSize = ss.str().size();
+		while (totalSize < headerSize + len) {
+			char buf[501];
+			int r = recv(sock, buf, 500, NULL);
+			if (r == SOCKET_ERROR) return -3;
+			buf[r] = '\0';
+			ss << buf;
+			totalSize += strlen(buf);
+		}
+		frame.content = ss.str().substr(ss.str().find("\r\n\r\n") + 4);
+	}
+	else if (ss.str().find("Transfer-Encoding: chunked") != std::string::npos) {
+		size_t chunkSize = 0;
+		size_t headerSize = ss.str().find("\r\n\r\n") + 4;
+		do {
+			char buf[501];
+			int r = recv(sock, buf, 500, NULL);
+			if (r == SOCKET_ERROR) return -5;
+			buf[r] = '\0';
+			ss << buf;
+		} while (ss.str().find("\r\n0\r\n") == std::string::npos);
+		std::string content = ss.str().substr(headerSize);
+		std::string::const_iterator it = content.cbegin();
+		std::smatch match;
+		std::regex regex("^[0-9a-fA-F]+\r\n");
+		size_t lastChunk = 0;
+		while (std::regex_search(it, content.cend(), match, regex)) {
+			frame.content += content.substr(lastChunk, match.position());
+			lastChunk += match.position() + match.length();
+			it += match.position() + match.length();
+		}
+	}
+}
+
 int HttpClient::sendHtmlFile(HtmlFile file)
 {
 	std::string message = "Http/1.1 200 OK\r\nAccept-Ranges: bytes\r\nContent-Length: " + std::to_string(file.size) + "\r\nContent-Type: text/html\r\n\r\n" + file.data;
@@ -172,7 +223,7 @@ int HttpClient::connectClient()
 void HttpFrame::load(char * frame)
 {
 	data = frame;
-	if (data.size() <= 3) return;
+	if (data.size() <= 3 || data.find('/') == std::string::npos) return;
 	protocol = data.substr(0, data.find('/') - 1);
 	file = data.substr(data.find('/'));
 	file = file.substr(0, file.find(' '));

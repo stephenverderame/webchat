@@ -214,5 +214,7 @@ int main() {
 		}
 
 	}
+	chatFile.del();
+	bugFile.del();
 	return 0;
 }
