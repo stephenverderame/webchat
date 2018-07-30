@@ -12,9 +12,9 @@ int main() {
 	Winsock data;
 	openssl sslData;
 	WebsockListener listener(8032);
-	HttpListener https;
-//	https.loadCert("key.pem", "cert.pem");
-	https.nonblocking(ENABLE);
+	HttpsListener https;
+	https.loadCert("key.pem", "cert.pem");
+//	https.nonblocking(ENABLE);
 //	https.nagle(DISABLE);
 	FD read;
 	HtmlFile chatFile("chat.html");
@@ -69,14 +69,14 @@ int main() {
 		if (read.inSet(&https)) {
 			printf("Https data \n");
 			int code;
-			HttpClient connection = https.accept(code);
+			HttpsClient connection = https.accept(code);
 			if (code == 0) {
-				FD tempFd;
+/*				FD tempFd;
 				tempFd.clear();
 				tempFd.add(&connection);
 				timeval t;
 				t.tv_sec = 5; t.tv_usec = 0;
-				FD::waitUntil(&t, &tempFd); 
+				FD::waitUntil(&t, &tempFd);*/
 				HttpFrame frame;
 //				printf("Getting ssl message \n");
 				code = connection.getMessage(frame);

@@ -69,7 +69,8 @@ int HttpsClient::sendMessage(char * msg)
 
 int HttpsClient::sendHtmlFile(HtmlFile file)
 {
-	int ret = SSL_write(ssl, file.data, file.size);
+	std::string message = "Http/1.1 200 OK\r\nAccept-Ranges: bytes\r\nContent-Length: " + std::to_string(file.size) + "\r\nContent-Type: text/html\r\n\r\n" + file.data;
+	int ret = SSL_write(ssl, message.c_str(), message.size());
 	if (ret <= 0)
 		return SSL_get_error(ssl, ret);
 	return 0;
@@ -77,25 +78,28 @@ int HttpsClient::sendHtmlFile(HtmlFile file)
 
 int HttpsClient::getMessage(HttpFrame & frame)
 {
-	char buf[500];
+	char buf[501];
 	int ret = 1;
 	std::stringstream stream;
 	do {
 		ret = SSL_read(ssl, buf, 500);
 		if (ret > 0) {
-			buf[ret] = 0;
+			buf[ret] = '\0';
 //			printf("Read %s \n", buf);
 			stream << buf;
 		}
 //		else
 //			printf("Should exit loop bc %d \n", ret);
-	} while (SSL_get_error(ssl, ret) == SSL_ERROR_WANT_READ);
+	} while (SSL_pending(ssl) > 0 && ret > 0);
 	if (ret <= 0) {
 		int code = SSL_get_error(ssl, ret);
-//		if (code == SSL_ERROR_SYSCALL || code == SSL_ERROR_SSL)
+		printf("SSL returned with %d: %d and ERR is %lu \n", ret, code, ERR_get_error());
+		if (code == SSL_ERROR_SYSCALL || code == SSL_ERROR_SSL)
 			return code;
 	}
+//	printf("Exited loop!");
 	std::string msg = stream.str();
+	if (msg.find("\r\n\r\n") == std::string::npos) return -1;
 	frame.content = msg.substr(msg.find("\r\n\r\n") + 4);
 	std::string header = msg.substr(0, msg.find("\r\n\r\n"));
 	frame.load((char*)header.c_str());
@@ -126,7 +130,7 @@ void HttpsListener::loadCert(const char * key, const char * cert)
 	SSL_CTX_set_ecdh_auto(ctx, 1);
 	if(SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM) <= 0)
 		ERR_print_errors_fp(stderr);
-	if(SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM) <= 0)
+	if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM) <= 0)
 		ERR_print_errors_fp(stderr);
 }
 
@@ -143,22 +147,18 @@ HttpsClient HttpsListener::accept(int & error)
 		printf("Could not accept\n");
 		error = -1;
 	}
-	else
-		printf("Accepted tcp socket\n");
 	SSL * ssl = SSL_new(ctx);
 	if (ssl == NULL) error = -55;
 	int ret = SSL_set_fd(ssl, connection);
-	if (ret == 0)
+	if (ret == 0) {
 		error = SSL_get_error(ssl, ret);
-	else
-		printf("Set ssl fd \n");
+		printf("Failed to set ssl fd\n");
+	}
 	ret = SSL_accept(ssl);
 	if (ret <= 0) {
 		error = SSL_get_error(ssl, ret);
 		printf("Failed to accept \n");
 	}
-	else
-		printf("Accepted ! \n");
 	HttpsClient client(connection, &ssl);
 	client.ctx = NULL;
 	return client;
