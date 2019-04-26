@@ -91,6 +91,20 @@ int HttpsClient::getMessage(HttpFrame & frame)
 //		else
 //			printf("Should exit loop bc %d \n", ret);
 	} while (SSL_pending(ssl) > 0 && ret > 0);
+	std::string msg = stream.str();
+	if (ret > 0 && stream.str().find("Transfer-Encoding: chunked")) {
+		if (stream.str().find("\r\n0\r\n") == std::string::npos) {
+			do {
+				ret = SSL_read(ssl, buf, 500);
+				if (ret > 0) {
+					buf[ret] = '\0';
+					stream << buf;
+				}
+			} while (ret > 0 && stream.str().find("\r\n0\r\n") == std::string::npos);
+			msg = std::regex_replace(stream.str(), std::regex("\\r\\n[0-9a-fA-F]+\\r\\n"), "");
+		}
+
+	}
 	if (ret <= 0) {
 		int code = SSL_get_error(ssl, ret);
 		printf("SSL returned with %d: %d and ERR is %lu \n", ret, code, ERR_get_error());
@@ -98,11 +112,12 @@ int HttpsClient::getMessage(HttpFrame & frame)
 			return code;
 	}
 //	printf("Exited loop!");
-	std::string msg = stream.str();
+	frame.data = msg;
 	if (msg.find("\r\n\r\n") == std::string::npos) return -1;
 	frame.content = msg.substr(msg.find("\r\n\r\n") + 4);
 	std::string header = msg.substr(0, msg.find("\r\n\r\n"));
 	frame.load((char*)header.c_str());
+	frame.data = msg;
 //	printf("Got message \n");
 	return 0;
 }

@@ -184,6 +184,7 @@ int HttpClient::getMessage_b(HttpFrame & frame)
 			it += match.position() + match.length();
 		}
 	}
+	frame.data = ss.str();
 }
 
 int HttpClient::sendHtmlFile(HtmlFile file)
@@ -251,7 +252,7 @@ void HttpFrame::composeResponse()
 
 }
 void HttpFrame::composeRequest() {
-	data = protocol + " " + file + " Http/1.1\r\n";
+	data = protocol + " " + file + " HTTP/1.1\r\n";
 	for (auto it = headers.begin(); it != headers.end(); it++) {
 		data += (*it).first + ": " + (*it).second + "\r\n";
 	}
