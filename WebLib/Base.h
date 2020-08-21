@@ -62,7 +62,7 @@ inline int fopen_s(FILE ** stream, const char * filename, const char * mode);
 #define htonll(a) ntohll(a)
 #endif //_WIN32
 class FD;
-class Socket {
+class Streamable {
 	friend class FD;
 protected:
 	SOCKET sock;
@@ -80,7 +80,7 @@ public:
 	virtual void closeConnection();
 	SOCKET & sock_t() { return sock; }
 };
-class Client : public Socket {
+class Client : public Streamable {
 protected:
 	bool closed;
 public:
@@ -89,7 +89,7 @@ public:
 	virtual void closeConnection();
 	bool isClosed() { return closed; }
 };
-class Listener : public Socket{
+class Listener : public Streamable{
 public:
 	Listener(unsigned short port);
 };
@@ -98,8 +98,8 @@ private:
 	FD_SET set;
 public:
 	void clear() { FD_ZERO(&set); }
-	void add(Socket * s) { FD_SET(s->sock, &set); }
-	bool inSet(Socket * s) { return FD_ISSET(s->sock, &set); }
+	void add(Streamable * s) { FD_SET(s->sock, &set); }
+	bool inSet(Streamable * s) { return FD_ISSET(s->sock, &set); }
 public:
 	static void wait(FD * read, FD * write = nullptr, FD * except = nullptr);
 	static void waitUntil(timeval * t, FD * read, FD * write = nullptr, FD * except = nullptr);

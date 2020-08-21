@@ -1,6 +1,6 @@
 #include "Base.h"
 
-int Socket::send_s(char * msg, num_t size)
+int Streamable::send_s(char * msg, num_t size)
 {
 	if (size == -1) size = strlen(msg);
 	num_t dataSent = 0;
@@ -13,7 +13,7 @@ int Socket::send_s(char * msg, num_t size)
 	return 0;
 }
 
-int Socket::recv_s(char ** msg, num_t size)
+int Streamable::recv_s(char ** msg, num_t size)
 {
 	num_t dataGot = 0;
 	while (dataGot < size) {
@@ -25,24 +25,24 @@ int Socket::recv_s(char ** msg, num_t size)
 	return 0;
 }
 
-void Socket::addToFD(FD_SET * fd)
+void Streamable::addToFD(FD_SET * fd)
 {
 	FD_SET(sock, fd);
 }
 
-bool Socket::isInFD(FD_SET * fd)
+bool Streamable::isInFD(FD_SET * fd)
 {
 	return FD_ISSET(sock, fd);
 }
 
-void Socket::nagle(int enable)
+void Streamable::nagle(int enable)
 {
 #ifdef _WIN32
 	setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&enable, sizeof(enable));
 #endif
 }
 
-void Socket::nonblocking(int enable)
+void Streamable::nonblocking(int enable)
 {
 #ifdef _WIN32
 	ioctlsocket(sock, FIONBIO, (u_long*)&enable);
@@ -52,7 +52,7 @@ void Socket::nonblocking(int enable)
 #endif
 }
 
-int Socket::getErrorCode()
+int Streamable::getErrorCode()
 {
 	int errCode;
 #ifdef _WIN32
@@ -64,7 +64,7 @@ int Socket::getErrorCode()
 	return errCode;
 }
 
-std::string Socket::getIpAddress()
+std::string Streamable::getIpAddress()
 {
 	SOCKADDR_IN address;
 	address = addrData;
@@ -77,7 +77,7 @@ std::string Socket::getIpAddress()
 	return std::string(inet_ntoa(address.sin_addr));
 }
 
-void Socket::closeConnection()
+void Streamable::closeConnection()
 {
 	closesocket(sock);
 }

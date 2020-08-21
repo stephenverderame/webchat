@@ -14,7 +14,7 @@ private:
 	int recv_ss(char ** buffer, int size);
 	int send_ss(char * buffer, int size = -1);
 public:
-	HttpsClient(char * hostname, unsigned int port = STD_HTTPS_PORT);
+	HttpsClient(const char * hostname, unsigned int port = STD_HTTPS_PORT);
 	HttpsClient(SOCKET sock, SSL ** ssl);
 	int connectClient();
 	int sendMessage(HttpFrame frame);

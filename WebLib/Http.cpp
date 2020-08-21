@@ -34,7 +34,14 @@ void HtmlFile::saveFile(const char * filename)
 	}
 }
 
-HttpClient::HttpClient(char * hostname, unsigned short port)
+void HtmlFile::cpyFromMem(const char * data)
+{
+	size = strlen(data);
+	this->data = new char[size + 1];
+	strcpy(this->data, data);
+}
+
+HttpClient::HttpClient(const char * hostname, unsigned short port)
 {
 	hostent * server = gethostbyname(hostname);
 	if (!server) printf("Cannot find host \n");

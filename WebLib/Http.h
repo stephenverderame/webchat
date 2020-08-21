@@ -1,5 +1,6 @@
 #ifndef HTTP_H
 #define HTTP_H
+#define _CRT_SECURE_NO_WARNINGS
 #include "Base.h"
 #include <cstdio>
 #include <regex>
@@ -50,6 +51,7 @@ public:
 	HtmlFile(const char * filename) { loadFile(filename); }
 	HtmlFile(HttpFrame frame);
 	void saveFile(const char * filename);
+	void cpyFromMem(const char * data);
 };
 class HttpListener : public Listener {
 public:
@@ -61,7 +63,7 @@ class HttpClient : public Client {
 public:
 	HttpClient(SOCKET s) : Client(s) {};
 	HttpClient() : Client() {};
-	HttpClient(char * hostname, unsigned short port = STD_HTTP_PORT);
+	HttpClient(const char * hostname, unsigned short port = STD_HTTP_PORT);
 	int getMessage(HttpFrame & frame);
 	int getMessage_b(HttpFrame & frame);
 	int sendHtmlFile(HtmlFile file);

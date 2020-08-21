@@ -243,3 +243,12 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+#Openssl
+*/openssl/*
+/TestLib2/libssl32.dll
+/TestLib2/libeay32.dll
+/TestLib2/ssleay32.dll
+/libeay32.dll
+/libssl32.dll
+/ssleay32.dll

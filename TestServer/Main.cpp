@@ -14,6 +14,8 @@ int main() {
 	WebsockListener listener(8032);
 	HttpsListener https;
 	https.loadCert("key.pem", "cert.pem");
+	DWORD timeout = 3000;
+	setsockopt(https.sock_t(), SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
 //	https.nonblocking(ENABLE);
 //	https.nagle(DISABLE);
 	FD read;
@@ -102,13 +104,10 @@ int main() {
 						}
 						printf("Msg: %s \n", msg.c_str());
 						SmtpClient emailClient(GMAIL_HOST, GMAIL_PORT);
-						emailClient.login("email@gmail.com", "password omitted for obvious reasons");
-						code = emailClient.sendMessage("email@gmail.com", (char*)subject.c_str(), (char*)msg.c_str());
+						emailClient.login("waltwhitmanprogramming@gmail.com", "wwccFer@C0");
+						code = emailClient.sendMessage("stephenverderame@gmail.com", (char*)subject.c_str(), (char*)msg.c_str());
 						if (code != 0) printf("Email error: %d \n", code);
-						HttpFrame response;
-						response.responseCode = "200 OK";
-						response.composeResponse();
-						connection.sendMessage(response);
+						connection.sendHtmlFile(chatFile);
 					}
 				}
 				else {

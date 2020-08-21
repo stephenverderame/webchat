@@ -68,7 +68,11 @@ int SmtpClient::sendMessage(char * recp, char * subject, char * message)
 	SSL_write(ssl, msg, strlen(msg));
 	SSL_read(ssl, buffer, sizeof(buffer));
 
-	sprintf_s(msg, 10000, "Subject:%s \r\n\r\n", subject);
+	sprintf_s(msg, 10000, "Subject:%s \r\n", subject);
+	SSL_write(ssl, msg, strlen(msg));
+	sprintf_s(msg, 10000, "From:'%s'<%s> \r\n", base64_decode(user).c_str(), base64_decode(user).c_str());
+	SSL_write(ssl, msg, strlen(msg));
+	sprintf_s(msg, 10000, "To:'%s'<%s> \r\n\r\n", recp, recp);
 	SSL_write(ssl, msg, strlen(msg));
 	sprintf_s(msg, 10000, "%s \r\n", message);
 	long long dataSent = 0;

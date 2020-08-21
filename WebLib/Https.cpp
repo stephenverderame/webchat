@@ -24,7 +24,7 @@ int HttpsClient::send_ss(char * buffer, int size)
 	}
 	return 0;
 }
-HttpsClient::HttpsClient(char * hostname, unsigned int port)
+HttpsClient::HttpsClient(const char * hostname, unsigned int port)
 {
 	hostent * server = gethostbyname(hostname);
 	sock = socket(AF_INET, SOCK_STREAM, NULL);
@@ -84,15 +84,16 @@ int HttpsClient::getMessage(HttpFrame & frame)
 	do {
 		ret = SSL_read(ssl, buf, 500);
 		if (ret > 0) {
-			buf[ret] = '\0';
+//			buf[ret] = '\0';
 //			printf("Read %s \n", buf);
-			stream << buf;
+//			stream << buf;
+			stream.write(buf, ret);
 		}
 //		else
 //			printf("Should exit loop bc %d \n", ret);
 	} while (SSL_pending(ssl) > 0 && ret > 0);
 	std::string msg = stream.str();
-	if (ret > 0 && stream.str().find("Transfer-Encoding: chunked")) {
+	if (ret > 0 && stream.str().find("Transfer-Encoding: chunked") != std::string::npos) {
 		if (stream.str().find("\r\n0\r\n") == std::string::npos) {
 			do {
 				ret = SSL_read(ssl, buf, 500);
@@ -117,7 +118,7 @@ int HttpsClient::getMessage(HttpFrame & frame)
 	frame.content = msg.substr(msg.find("\r\n\r\n") + 4);
 	std::string header = msg.substr(0, msg.find("\r\n\r\n"));
 	frame.load((char*)header.c_str());
-	frame.data = msg;
+//	frame.data = msg;
 //	printf("Got message \n");
 	return 0;
 }

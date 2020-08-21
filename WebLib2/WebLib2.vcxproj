@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -18,9 +18,32 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Client.cpp" />
+    <ClCompile Include="Coder.cpp" />
+    <ClCompile Include="File.cpp" />
+    <ClCompile Include="HttpClient.cpp" />
+    <ClCompile Include="Socket.cpp" />
+    <ClCompile Include="SSLSocket.cpp" />
+    <ClCompile Include="Streamable.cpp" />
+    <ClCompile Include="StreamView.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Client.h" />
+    <ClInclude Include="Coder.h" />
+    <ClInclude Include="File.h" />
+    <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="Socket.h" />
+    <ClInclude Include="SSLSocket.h" />
+    <ClInclude Include="Streamable.h" />
+    <ClInclude Include="StreamableImpl.h" />
+    <ClInclude Include="StreamView.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1EE82284-2428-48E1-B6E6-E2A9616D4142}</ProjectGuid>
-    <RootNamespace>WebLib</RootNamespace>
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{CBEE59FB-2748-4EC9-8A57-2D0AC78E44DE}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>WebLib2</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -28,27 +51,27 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -69,77 +92,101 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\lib;$(LibraryPath)</LibraryPath>
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build32;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build32\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;$(IncludePath)</IncludePath>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\WebLib\WebLib;$(IncludePath)</IncludePath>
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build32;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;C:\OpenSSL-Win32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build32\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;C:\OpenSSL-Win32\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcryptoMD.lib;libsslMD.lib;libcryptoMDd.lib;libsslMDd.lib;libcryptoMT.lib;libsslMT.lib;libcryptoMTd.lib;libsslMTd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="Base.h" />
-    <ClInclude Include="Base64.h" />
-    <ClInclude Include="Http.h" />
-    <ClInclude Include="Https.h" />
-    <ClInclude Include="SHA1.h" />
-    <ClInclude Include="Smtp.h" />
-    <ClInclude Include="SSL.h" />
-    <ClInclude Include="WebSocket.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Base.cpp" />
-    <ClCompile Include="Base64.cpp" />
-    <ClCompile Include="Http.cpp" />
-    <ClCompile Include="Https.cpp" />
-    <ClCompile Include="SHA1.cpp" />
-    <ClCompile Include="Smtp.cpp" />
-    <ClCompile Include="WebSocket.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
