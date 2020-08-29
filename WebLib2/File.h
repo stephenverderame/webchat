@@ -23,6 +23,8 @@ protected:
 	const char * fMode(FileMode& m) const;
 public:
 	File(const char * file, FileMode mode = FileMode::write + FileMode::update);
+
+	//Syncs output buffer and closes file stream
 	~File();
 };
 inline FileMode & operator+=(FileMode & a, FileMode b)

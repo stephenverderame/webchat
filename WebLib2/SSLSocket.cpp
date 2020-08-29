@@ -39,7 +39,7 @@ SSLSocket::SSLSocket(const SSL_METHOD * meth, socket_t sock) : sock(sock), metho
 
 SSLSocket::SSLSocket(Address addr, FDMethod meth, port_t p, const SSL_METHOD * smeth) : SSLSocket(smeth)
 {
-	open(addr, meth, p);
+	int a = open(addr, meth, p);
 }
 
 SSLSocket::~SSLSocket()
@@ -59,6 +59,7 @@ int SSLSocket::open(Address addr, FDMethod meth, port_t p)
 	int err = connect(sock, (sockaddr*)&data, sizeof(data));
 	if (err != 0) return err;
 	ctx = SSL_CTX_new(method);
+	if (!ctx) return -60;
 	ssl = SSL_new(ctx);
 	if (!ssl)
 		return -50;

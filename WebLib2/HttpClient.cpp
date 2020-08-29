@@ -64,7 +64,9 @@ void HttpClient::send()
 }
 HttpResponse HttpClient::getResponse()
 {
-	stream->syncOutputBuffer();
+	int e;
+	if ((e = stream->syncOutputBuffer()) < 0)
+		printf("Syncing output error: %d", stream->getError(e));
 	auto headerEndIndex = stream->fetch(500, false, "\r\n\r\n", true);
 	HttpResponse resp;
 	Streamable & s = *stream.get();
@@ -90,20 +92,28 @@ HttpResponse HttpClient::getResponse()
 			StreamView & transferEncoding = resp.headers[StreamView::HASH("Transfer-Encoding")];
 			StreamView & contentEncoding = resp.headers[StreamView::HASH("Content-Encoding")];
 			if (transferEncoding.getSize() > 0 && transferEncoding == "chunked") {
-				if (stream->view().find("\r\n", stream->icur()) == StreamView::INVALID) stream->fetch(50, false, "\r\n", true);				
 				int size;
 				do {
+					if (stream->view().find("\r\n", stream->icur()) == StreamView::INVALID) {
+						stream->fetch(10, false, "\r\n", true);
+					}
 					std::streampos initial = s.tellg();
 					s >> std::hex >> size;
 					s.pubseekoff(2, std::ios::cur, std::ios::in); //one more \r\n
 					auto now = s.tellg();
-					stream->remove(initial, now);
+					stream->remove(initial - std::streamoff(2), now); // -2 to remove the \r\n that ended the previous chunk
+					now = s.tellg();
 					if (size > 0) {
-						stream->fetch(size + 2 - (stream->getBufferSize() - initial), true);
+						stream->fetch(size + 2 - (stream->getBufferSize() - now), true);
 						s.pubseekoff(size + 2, std::ios::cur, std::ios::in);
 					}
-				} while (size > 0 && s.available());
-				stream->seekg(headerEndIndex + 4);
+					else {
+						stream->remove(now, now + std::streamoff(2)); //one more \r\n
+						stream->syncInputBuffer();
+					}
+				} while (size > 0);
+				stream->seekg(headerEndIndex + 2);
+				printf("%d\n", headerEndIndex);
 			}
 			else if (resp.headers.find(StreamView::HASH("Content-Length"))) {
 				std::streampos initial = s.tellg();
@@ -115,10 +125,11 @@ HttpResponse HttpClient::getResponse()
 			}
 			if (contentEncoding.getSize() > 0 && contentEncoding == "gzip") {
 				GzipCoder * gzip = new GzipCoder(stream.get());
-				gzip->decode();				
+				int err = gzip->decode();
+				printf("Gzip error: %d %d\n", err, gzip->getError(err));
 				stream = std::unique_ptr<Streamable>(gzip);
 			}
-			resp.content = stream->getStreamView();
+			resp.content = stream->getStreamView(std::ios::cur);
 		}
 	}
 	return std::move(resp);

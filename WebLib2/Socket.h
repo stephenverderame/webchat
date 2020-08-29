@@ -40,6 +40,7 @@ public:
 	void shouldBlock(bool blocking);
 	void close();
 };
+//Custom RAII class
 class Context {
 private:
 	std::function<void(void)> dtor;

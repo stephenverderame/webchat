@@ -105,7 +105,7 @@ public:
 	std::streamsize getBufferSize(std::ios_base::openmode type = std::ios::in) const;
 
 	//returns a streamview that has shared ownership of the buffer
-	StreamView getStreamView(std::streamsize start = 0, std::streamsize end = -1) const;
+	StreamView getStreamView(std::streamoff origin = std::ios::beg, std::streamsize start = 0, std::streamsize end = -1) const;
 
 	//returns a streamview that does not own the buffer, and must have a shorter lifetime than the stream
 	StreamView view(std::streamsize start = 0, std::streamsize end = -1) const;
@@ -139,3 +139,9 @@ eback()	Beginning of the buffered part of the input sequence
 gptr()	Current position in the input sequence ("get pointer")
 egptr()	End of the buffered part of the input sequence
 */
+
+/**
+* @param uri    uri in the form of scheme:[//]host[:port][/path] [] Denote optional components
+* @return       Streamable object that interfaces with the desired stream or nullptr on failure
+*/
+std::unique_ptr<Streamable> make_stream(const char* uri);

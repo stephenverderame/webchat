@@ -38,7 +38,7 @@ public:
 	std::string copy() const;
 
 	template<typename T = int>
-	T parse(std::streamsize start = 0, std::streamsize end = -1);
+	T parse(std::streamsize start = 0, std::streamsize end = -1, int base = 10);
 
 	//continues to get the next substring delimeted by the delim, increasing the internal seek pointer until no more references of the delim are found
 	//returns true when a delim is found, false otherwise
@@ -58,6 +58,8 @@ public:
 
 	std::streamsize getSize() const;
 
+	inline std::streamsize rel2abs(std::streamsize relative);
+
 
 	//Does not take owenership
 	void assign(const char * mem, std::streamsize start, std::streamsize end);
@@ -74,7 +76,7 @@ protected:
 std::ostream & operator<<(std::ostream & s, const StreamView & str);
 
 template<typename T>
-inline T StreamView::parse(std::streamsize start, std::streamsize end)
+inline T StreamView::parse(std::streamsize start, std::streamsize end, int base)
 {
 	static_assert(std::is_integral<T>::value);
 	if (end == -1) end = size;
@@ -82,18 +84,26 @@ inline T StreamView::parse(std::streamsize start, std::streamsize end)
 	const_cast<char*>(_gptr())[end] = '\0';
 	T val;
 	if (std::is_floating_point<T>::value) {
-		val = atof(&_gptr()[start]);
+		if (sizeof(T) == sizeof(double))
+			val = strtod(&_gptr()[start], NULL);
+		else if (sizeof(T) == sizeof(long double))
+			val = strtold(&_gptr()[start], NULL);
+		else
+			val = strtof(&_gptr()[start], NULL);
+	}
+	else if (std::is_unsigned<T>::value) {
+		if (sizeof(T) == sizeof(long long))
+			val = strtoull(&_gptr()[start], NULL, base);
+		else
+			val = strtoul(&_gptr()[start], NULL, base);
 	}
 	else {
 		switch (sizeof(T)) {
-			case sizeof(long long):
-				val = atoll(&_gptr()[start]);
+			case sizeof(long long) :
+				val = strtoll(&_gptr()[start], NULL, base);
 				break;
-			case sizeof(long):
-				val = atol(&_gptr()[start]);
-				break;
-			default:
-				val = atoi(&_gptr()[start]);
+			default :
+				val = strtol(&_gptr()[start], NULL, base);
 				break;
 		}
 	}
@@ -109,6 +119,9 @@ inline constexpr long StreamView::HASH(const char * str, size_t len) {
 		r %= MOD;
 	}
 	return r;
+}
+inline std::streamsize StreamView::rel2abs(std::streamsize relativeOffset) {
+	return relativeOffset + start;
 }
 
 

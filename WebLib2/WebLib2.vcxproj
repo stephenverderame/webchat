@@ -44,32 +44,32 @@
     <ProjectGuid>{CBEE59FB-2748-4EC9-8A57-2D0AC78E44DE}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>WebLib2</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -93,22 +93,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build32;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master\build32;C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master;C:\Users\SEV\Documents\Coding Stuff\desktop\openssl\openssl-1.1.0f-vs2017\openssl-1.1.0f-vs2017\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build32\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master;C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master\build;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build32;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;C:\OpenSSL-Win32\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master\build32;C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master;C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;C:\Users\stephen\Desktop\coding stuff\zlib-master\build32;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;C:\OpenSSL-Win32\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build32\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;C:\Users\stephen\Desktop\coding stuff\zlib-master\build;C:\Users\stephen\Desktop\coding stuff\zlib-master;C:\Users\stephen\Desktop\coding stuff\gzip-hpp-master\include;C:\OpenSSL-Win32\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master;C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;C:\Users\SEV\Documents\Coding Stuff\desktop\zlib-master\build;C:\OpenSSL-Win32\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\stephen\Desktop\coding stuff\zlib-master\build\Release;C:\OpenSSL-Win32\lib\VC\static;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

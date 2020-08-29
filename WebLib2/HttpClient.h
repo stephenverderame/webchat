@@ -1,19 +1,35 @@
 #pragma once
 #include "Client.h"
 #include "StreamView.h"
-#define HTTP_OK "200 OK"
-#define HTTP_CREATED "201 Created"
-#define HTTP_BAD "400 Bad Request"
-#define HTTP_FORBIDDEN "403 Forbidden"
-#define HTTP_UNAUTH "401 Unauthorized"
-#define HTTP_NFOUND "404 Not Found"
-#define HTTP_NALLOW "405 Method Not Allowed"
-#define HTTP_NIMPLEMENT "501 Not Implemented"
-#define HTTP_SWITCH "101 Switching Protocols"
-
-#define HTTP_GET "GET"
-#define HTTP_POST "POST"
-#define HTTP_PUT "PUT"
+namespace HTTP {
+	namespace Resp {
+		constexpr const char* OK = "200 OK";
+		constexpr const char* CREATED = "201 Created";
+		constexpr const char* BAD = "400 Bad Request";
+		constexpr const char* FORBIDDEN = "403 Forbidden";
+		constexpr const char* UNAUTH = "401 Unauthorized";
+		constexpr const char* NOT_FOUND = "404 Not Found";
+		constexpr const char* NOT_ALLOW = "405 Method Not Allowed";
+		constexpr const char* NOT_IMPLEMENT = "501 Not Implemented";
+		constexpr const char* SWITCH = "101 Switching Protocols";
+	}
+	namespace RespCode {
+		constexpr const int ok = 200;
+		constexpr const int created = 201;
+		constexpr const int bad = 400;
+		constexpr const int forbidden = 403;
+		constexpr const int unauth = 401;
+		constexpr const int not_found = 404;
+		constexpr const int not_allow = 405;
+		constexpr const int not_implement = 501;
+		constexpr const int switch_proto = 101;
+	}
+	namespace Req {
+		constexpr const char* GET = "GET";
+		constexpr const char* POST = "POST";
+		constexpr const char* PUT = "PUT";
+	}
+}
 
 class HttpHeaders {
 private:
@@ -23,6 +39,7 @@ public:
 	//returns a streamview with a zero length on failure
 	StreamView& operator[](const char * key);
 	StreamView& operator[](long hashKey);
+
 	void put(StreamView&& key, StreamView&& val);
 	void put(const StreamView& key, const StreamView& val);
 	void put(StreamView&& key, const StreamView& val);

@@ -59,6 +59,7 @@ File::File(const char * file, FileMode mode)
 
 File::~File()
 {
+	syncOutputBuffer();
 	fclose(f);
 }
 FileMode operator+(FileMode a, FileMode b)

@@ -97,7 +97,7 @@ std::streamsize StreamView::find(const char * k, std::streamsize start, size_t l
 	if (size >= len) {
 		auto it = _gptr() + start;
 		if (len <= 8) {
-			for (it; it < _gptr() + size - len; ++it) {
+			for (it; it <= _gptr() + size - len; ++it) {
 				if (memcmp(it, k, len) == 0) return it - _gptr();
 			}
 		}
@@ -256,7 +256,7 @@ std::streamsize StreamView::getSize() const
 void StreamView::assign(const char * mem, std::streamsize start, std::streamsize end)
 {
 	parent_p = mem;
-	start = start;
+	this->start = start;
 	size = end - start;
 }
 
