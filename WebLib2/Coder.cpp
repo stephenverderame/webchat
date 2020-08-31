@@ -59,7 +59,7 @@ int GzipCoder::nvi_encode()
 		zs.avail_in = sizeToProcess;
 		zs.next_in = (Bytef*)str->icurrent_c();
 //		zs.avail_out = result.size();		
-		int err = deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 15 | 16, 8, Z_DEFAULT_STRATEGY);
+		int err = deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
 		if (err < Z_OK) return err;
 		result.resize(deflateBound(&zs, sizeToProcess));
 		zs.avail_out = result.size();
@@ -74,7 +74,7 @@ int GzipCoder::nvi_encode()
 		std::streamsize sizeToProcess = pimpl->o;
 		zs.avail_in = sizeToProcess;
 		zs.next_in = (Bytef*)&pimpl->obuffer[0];		
-		int err = deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 16 | MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
+		int err = deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
 		if (err < Z_OK) return err;
 		result.resize(deflateBound(&zs, sizeToProcess));
 		zs.avail_out = result.size();
@@ -97,21 +97,25 @@ int GzipCoder::nvi_decode()
 		std::streamsize sizeToProcess = str->iend_c() - str->icurrent_c();
 		int bufferMultiplier = 2;
 		int err = 0;
+		std::streamsize processedOutput = 0, processedInput = 0;
+		err = inflateInit2(&zs, 16 + MAX_WBITS);
+		if (err < Z_OK) return err;
 		do {
+			processedOutput += zs.total_out;
+			processedInput += zs.total_in;
 			bufferMultiplier *= 2;
 			result.resize(sizeToProcess * bufferMultiplier);
-			zs.avail_in = sizeToProcess;
-			zs.next_in = (Bytef*)str->icurrent_c();
-			zs.next_out = (Bytef*)result.data();
-			zs.avail_out = result.size();
-			err = inflateInit2(&zs, 16 + MAX_WBITS);
-			if (err < Z_OK) return err;
-			err = inflate(&zs, Z_FINISH);
-			inflateEnd(&zs);
+			zs.avail_in = sizeToProcess - processedInput;
+			zs.next_in = (Bytef*)str->icurrent_c() + processedInput;
+			zs.next_out = (Bytef*)result.data() + processedOutput;
+			zs.avail_out = result.size() - processedOutput;
+			err = inflate(&zs, Z_FINISH);			
 		} while (err == Z_MEM_ERROR);
+		processedOutput += zs.total_out;
+		int e = inflateEnd(&zs);
 		if (err < Z_OK) return err;
-		pimpl->iend = zs.total_out;
-		setg(result.data(), result.data() + 1, result.data() + zs.total_out);
+		pimpl->iend = processedOutput;
+		setg(result.data(), result.data() + 1, result.data() + processedOutput);
 	}
 	else {
 		std::streamsize sizeToProcess = pimpl->o;

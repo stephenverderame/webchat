@@ -145,3 +145,5 @@ egptr()	End of the buffered part of the input sequence
 * @return       Streamable object that interfaces with the desired stream or nullptr on failure
 */
 std::unique_ptr<Streamable> make_stream(const char* uri);
+
+std::ostream& operator<<(std::ostream& strm, const Streamable& other);

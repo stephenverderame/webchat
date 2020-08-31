@@ -45,6 +45,8 @@ public:
 	bool getsub(StreamView & view, char delim) const;
 	bool getsub(StreamView & view, const char * delim) const;
 
+	char operator[](std::streamsize index) const;
+
 	//operations of the internal pointer
 	char get() const;
 	std::streamsize tell() const;

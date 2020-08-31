@@ -315,3 +315,9 @@ std::unique_ptr<Streamable> make_stream(const char* uri)
 	}
 	return nullptr;
 }
+
+std::ostream& operator<<(std::ostream& strm, const Streamable& other)
+{
+	strm.write(other.icurrent_c(), other.iend_c() - other.icurrent_c());
+	return strm;
+}

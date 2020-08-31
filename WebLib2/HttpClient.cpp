@@ -4,6 +4,7 @@
 #include "StreamView.h"
 #include <array>
 #include "Coder.h"
+#include "File.h"
 struct HttpClient::impl
 {
 	std::vector<std::pair<const char *, const char *>> headers;
@@ -92,6 +93,13 @@ HttpResponse HttpClient::getResponse()
 			StreamView & transferEncoding = resp.headers[StreamView::HASH("Transfer-Encoding")];
 			StreamView & contentEncoding = resp.headers[StreamView::HASH("Content-Encoding")];
 			if (transferEncoding.getSize() > 0 && transferEncoding == "chunked") {
+				/*
+				* Chunk format:
+				*   size in hex\r\n
+				*   chunk of size\r\n
+				* ... next chunk
+				*/
+
 				int size;
 				do {
 					if (stream->view().find("\r\n", stream->icur()) == StreamView::INVALID) {
@@ -101,18 +109,16 @@ HttpResponse HttpClient::getResponse()
 					s >> std::hex >> size;
 					s.pubseekoff(2, std::ios::cur, std::ios::in); //one more \r\n
 					auto now = s.tellg();
-					stream->remove(initial - std::streamoff(2), now); // -2 to remove the \r\n that ended the previous chunk
+					stream->remove(initial, now);
 					now = s.tellg();
 					if (size > 0) {
-						stream->fetch(size + 2 - (stream->getBufferSize() - now), true);
-						s.pubseekoff(size + 2, std::ios::cur, std::ios::in);
+						stream->fetch(size + 2 - (stream->getBufferSize() - now), true);						
 					}
-					else {
-						stream->remove(now, now + std::streamoff(2)); //one more \r\n
-						stream->syncInputBuffer();
-					}
+					s.pubseekoff(size + 2, std::ios::cur, std::ios::in);
+					now = s.tellg();
+					stream->remove(now - std::streamoff(2), now); //remove ending \r\n
 				} while (size > 0);
-				stream->seekg(headerEndIndex + 2);
+				stream->seekg(headerEndIndex + 4);
 				printf("%d\n", headerEndIndex);
 			}
 			else if (resp.headers.find(StreamView::HASH("Content-Length"))) {
@@ -124,6 +130,8 @@ HttpResponse HttpClient::getResponse()
 				stream->seekg(headerEndIndex + 4);
 			}
 			if (contentEncoding.getSize() > 0 && contentEncoding == "gzip") {
+				File test("test.gz", FileMode::write + FileMode::binary);
+				test << stream;
 				GzipCoder * gzip = new GzipCoder(stream.get());
 				int err = gzip->decode();
 				printf("Gzip error: %d %d\n", err, gzip->getError(err));

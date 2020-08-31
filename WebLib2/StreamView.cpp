@@ -72,8 +72,8 @@ StreamView::StreamView(const std::shared_ptr<std::vector<char>>& parent, std::st
 {
 }
 StreamView::StreamView() : parent_p(nullptr), parent(nullptr), start(0), size(0), ptr(0) {}
-StreamView::StreamView(StreamView && other) = default;
-StreamView::StreamView(const StreamView & other) = default;
+StreamView::StreamView(StreamView&& other) : parent_p(other.parent_p), parent(other.parent), start(other.start), size(other.size), ptr(other.ptr) {}
+StreamView::StreamView(const StreamView & other) : parent_p(other.parent_p), parent(other.parent), start(other.start), size(other.size), ptr(other.ptr) {}
 StreamView & StreamView::operator=(const StreamView & other) = default;
 StreamView & StreamView::operator=(StreamView && other) = default;
 StreamView::~StreamView() = default;
@@ -196,6 +196,11 @@ bool StreamView::getsub(StreamView & view, const char * delim) const
 		return true;
 	}
 	return false;
+}
+
+char StreamView::operator[](std::streamsize index) const
+{
+	return _gptr()[index];
 }
 
 char StreamView::get() const

@@ -23,6 +23,7 @@
     <ClCompile Include="Coder.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="HttpClient.cpp" />
+    <ClCompile Include="JSON.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="SSLSocket.cpp" />
     <ClCompile Include="Streamable.cpp" />
@@ -33,6 +34,7 @@
     <ClInclude Include="Coder.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="HttpClient.h" />
+    <ClInclude Include="JSON.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="SSLSocket.h" />
     <ClInclude Include="Streamable.h" />

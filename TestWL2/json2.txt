@@ -1,0 +1,20 @@
+[
+	{
+		"question": "What is 50 + 3?",
+		"options": [
+			"503",
+			"53",
+			"80"
+		],
+		"answer": "53"
+	},
+	{
+		"question": "What is 50 * 3?",
+		"options": [
+			"503",
+			"53",
+			"150"
+		],
+		"answer": "150"
+	}
+]
