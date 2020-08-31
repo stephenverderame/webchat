@@ -23,6 +23,7 @@ using st_size = unsigned long;
 #else
 using st_size = unsigned long long;
 #endif
+constexpr st_size STR_INVALID = ~0;
 class StreamView;
 class Streamable : public std::streambuf, public std::iostream
 {

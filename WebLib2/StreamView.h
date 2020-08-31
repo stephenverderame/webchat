@@ -17,6 +17,7 @@ public:
 	//start inclusive, end exclusive
 	StreamView(const char * parent, std::streamsize start, std::streamsize end);
 	StreamView(const std::shared_ptr<std::vector<char>> & parent, std::streamsize start, std::streamsize end);
+	StreamView(const std::shared_ptr<std::vector<char>>&& parent, std::streamsize start, std::streamsize end);
 	StreamView();
 	StreamView(StreamView&& other);
 	StreamView(const StreamView& other);
@@ -65,6 +66,7 @@ public:
 
 	//Does not take owenership
 	void assign(const char * mem, std::streamsize start, std::streamsize end);
+	void adjust(std::streamsize start, std::streamsize end);
 public:
 	//case-insensitive
 	static long hash(const char * str, size_t len = -1);

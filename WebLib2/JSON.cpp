@@ -5,7 +5,35 @@
 #include <execution>
 inline bool ignore(char c)
 {
-	return c == ' ' || c == '\r' || c == '\n' || c == '"' || c == '\'' || c == '\t';
+	return c == ' ' || c == '\r' || c == '\n' || c == '\t';
+}
+StreamView getField(StreamView& parent, std::streamsize& p)
+{
+	std::streamsize end;
+	if (parent[p] == '"') {
+		p++;
+		end = parent.find('"', p);
+	}
+	else {
+		end = parent.find(',', p);
+		if (end == StreamView::INVALID) end = parent.getSize() - 1;
+		while (ignore(parent[end - 1])) --end;
+	}
+	auto out = parent.sub(p, end);
+	p = end;
+	return out;
+}
+StreamView getObject(StreamView& parent, std::streamsize& p)
+{
+	auto end = p + 1;
+	int braces = 1;
+	for (; braces > 0 && end < parent.getSize(); ++end) {
+		if (parent[end] == '{' || parent[end] == '[') ++braces;
+		else if (parent[end] == '}' || parent[end] == ']') --braces;
+	}
+	auto e = parent.sub(p, end);
+	p = end;
+	return e;
 }
 struct JSONObject::impl {
 	std::unordered_map<long, std::pair<StreamView, StreamView>> fields;
@@ -183,29 +211,18 @@ void JSONObject::init()
 	txt.advance();
 	std::streamsize p = txt.tell();
 	std::streamsize lastP = txt.tell();
-	while ((p = txt.find(':', p)) != StreamView::INVALID) {
+	while ((p = txt.find(':', p)) != StreamView::INVALID && lastP != StreamView::INVALID) {
 		for (; lastP < txt.getSize() && ignore(txt[lastP]); ++lastP);
+		++lastP;
 		StreamView name = txt.sub(lastP, txt.find('"', lastP));
 		for (++p; p < txt.getSize() && ignore(txt[p]); ++p);
-		StreamView data;
 		if (txt[p] == '{' || txt[p] == '[') {
-			int braces = 1;
-			auto start = p;
-			++p;
-			for (; braces > 0 && p < txt.getSize(); ++p) {
-				if (txt[p] == '{' || txt[p] == '[') ++braces;
-				else if (txt[p] == '}' || txt[p] == ']') --braces;
-			}
-			if(txt[start] == '{') pimpl->objs[name.hash()] = std::make_pair(name, txt.sub(start, p));
-			else pimpl->arrs[name.hash()] = std::make_pair(name, txt.sub(start, p));
+			if(txt[p] == '{') pimpl->objs[name.hash()] = std::make_pair(name, getObject(txt, p));
+			else pimpl->arrs[name.hash()] = std::make_pair(name, getObject(txt, p));
 		}
-		else {
-			auto end = txt.find('"', p);
-			data = txt.sub(p, end);
-			p = end;
-		}
+		else 
+			pimpl->fields[name.hash()] = std::make_pair(name, getField(txt, p));
 		lastP = txt.find(',', p) + 1;
-		if (data.getSize() > 0) pimpl->fields[name.hash()] = std::make_pair(name, data);
 			
 	}
 }
@@ -353,23 +370,14 @@ void JSONArray::init()
 		++p;
 		for (; ignore(txt[p]); ++p);
 		if (txt[p] == '[' || txt[p] == '{') {
-			auto end = p + 1;
-			int braces = 1;
-			while (braces > 0) {
-				if (txt[end] == '{' || txt[end] == '[') ++braces;
-				else if (txt[end] == '}' || txt[end] == ')') --braces;
-				++end;
-			}
-			auto e = txt.sub(p, end);
+			bool isObj = txt[p] == '{';
+			auto e = getObject(txt, p);
 			pimpl->elements.push_back(e);
-			if (txt[p] == '{') pimpl->objs.insert_or_assign(pimpl->elements.size() - 1, e);
+			if (isObj) pimpl->objs.insert_or_assign(pimpl->elements.size() - 1, e);
 			else pimpl->arrs.insert_or_assign(pimpl->elements.size() - 1, e);
-			p = end;
 		}
 		else {
-			auto end = txt.find('"', p);
-			pimpl->elements.push_back(txt.sub(p, end));
-			p = end;
+			pimpl->elements.push_back(getField(txt, p));
 		}
 	} while ((p = txt.find(',', p)) != StreamView::INVALID);
 }

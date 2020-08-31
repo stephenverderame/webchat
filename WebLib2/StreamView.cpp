@@ -71,6 +71,9 @@ StreamView::StreamView(const char * parent, std::streamsize start, std::streamsi
 StreamView::StreamView(const std::shared_ptr<std::vector<char>>& parent, std::streamsize start, std::streamsize end) : parent_p(nullptr), parent(parent), start(start), size(end - start), ptr(start)
 {
 }
+StreamView::StreamView(const std::shared_ptr<std::vector<char>>&& parent, std::streamsize start, std::streamsize end) : parent(parent), parent_p(nullptr), start(start), size(end - start), ptr(start)
+{
+}
 StreamView::StreamView() : parent_p(nullptr), parent(nullptr), start(0), size(0), ptr(0) {}
 StreamView::StreamView(StreamView&& other) : parent_p(other.parent_p), parent(other.parent), start(other.start), size(other.size), ptr(other.ptr) {}
 StreamView::StreamView(const StreamView & other) : parent_p(other.parent_p), parent(other.parent), start(other.start), size(other.size), ptr(other.ptr) {}
@@ -261,6 +264,12 @@ std::streamsize StreamView::getSize() const
 void StreamView::assign(const char * mem, std::streamsize start, std::streamsize end)
 {
 	parent_p = mem;
+	this->start = start;
+	size = end - start;
+}
+
+void StreamView::adjust(std::streamsize start, std::streamsize end)
+{
 	this->start = start;
 	size = end - start;
 }
