@@ -22,14 +22,12 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Coder.cpp" />
     <ClCompile Include="File.cpp" />
-    <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpClient.cpp" />
     <ClCompile Include="JSON.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="SSLSocket.cpp" />
     <ClCompile Include="Streamable.cpp" />
     <ClCompile Include="StreamView.cpp" />
-    <ClCompile Include="StringMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
