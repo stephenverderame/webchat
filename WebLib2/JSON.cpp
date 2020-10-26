@@ -16,7 +16,7 @@ StreamView getField(StreamView& parent, std::streamsize& p)
 	}
 	else {
 		end = parent.find(',', p);
-		if (end == StreamView::INVALID) end = parent.getSize() - 1;
+		if (end == StreamView::INVALID) end = parent.size() - 1;
 		while (ignore(parent[end - 1])) --end;
 	}
 	auto out = parent.sub(p, end);
@@ -27,7 +27,7 @@ StreamView getObject(StreamView& parent, std::streamsize& p)
 {
 	auto end = p + 1;
 	int braces = 1;
-	for (; braces > 0 && end < parent.getSize(); ++end) {
+	for (; braces > 0 && end < parent.size(); ++end) {
 		if (parent[end] == '{' || parent[end] == '[') ++braces;
 		else if (parent[end] == '}' || parent[end] == ']') --braces;
 	}
@@ -36,9 +36,9 @@ StreamView getObject(StreamView& parent, std::streamsize& p)
 	return e;
 }
 struct JSONObject::impl {
-	std::unordered_map<long, std::pair<StreamView, StreamView>> fields;
-	std::unordered_map<long, std::pair<StreamView, JSONObject>> objs;
-	std::unordered_map<long, std::pair<StreamView, JSONArray>> arrs;
+	std::unordered_map<hash_t, std::pair<StreamView, StreamView>> fields;
+	std::unordered_map<hash_t, std::pair<StreamView, JSONObject>> objs;
+	std::unordered_map<hash_t, std::pair<StreamView, JSONArray>> arrs;
 };
 
 struct JSONArray::impl {
@@ -96,7 +96,7 @@ JSONObject& JSONObject::operator=(JSONObject&& other)
 
 JSONObject::~JSONObject() = default;
 
-StreamView JSONObject::get(long hash) const
+StreamView JSONObject::get(hash_t hash) const
 {
 	if (pimpl->fields.find(hash) != pimpl->fields.end())
 		return pimpl->fields.at(hash).second;
@@ -105,10 +105,10 @@ StreamView JSONObject::get(long hash) const
 
 StreamView JSONObject::get(const char* name) const
 {
-	return get(StreamView::hash(name));
+	return get(util::HASH(name));
 }
 
-JSONObject* JSONObject::getObj(long hash) const
+JSONObject* JSONObject::getObj(hash_t hash) const
 {
 	if (pimpl->objs.find(hash) != pimpl->objs.end())
 		return &pimpl->objs.at(hash).second;
@@ -117,10 +117,10 @@ JSONObject* JSONObject::getObj(long hash) const
 
 JSONObject* JSONObject::getObj(const char* name) const
 {
-	return getObj(StreamView::hash(name));
+	return getObj(util::HASH(name));
 }
 
-JSONArray* JSONObject::getArray(long hash) const
+JSONArray* JSONObject::getArray(hash_t hash) const
 {
 	if (pimpl->arrs.find(hash) != pimpl->arrs.end())
 		return &pimpl->arrs.at(hash).second;
@@ -129,10 +129,10 @@ JSONArray* JSONObject::getArray(long hash) const
 
 JSONArray* JSONObject::getArray(const char* name) const
 {
-	return getArray(StreamView::hash(name));
+	return getArray(util::HASH(name));
 }
 
-JSONType JSONObject::typeof(long hash) const
+JSONType JSONObject::typeof(hash_t hash) const
 {
 	if (pimpl->fields.find(hash) != pimpl->fields.end()) return JSONType::field;
 	if (pimpl->objs.find(hash) != pimpl->objs.end()) return JSONType::object;
@@ -142,12 +142,12 @@ JSONType JSONObject::typeof(long hash) const
 
 JSONType JSONObject::typeof(const char* name) const
 {
-	return typeof(StreamView::hash(name));
+	return typeof(util::HASH(name));
 }
 
-std::vector<long> JSONObject::keyList() const
+std::vector<hash_t> JSONObject::keyList() const
 {
-	std::vector<long> vec;
+	std::vector<hash_t> vec;
 	vec.reserve(pimpl->fields.size() + pimpl->arrs.size() + pimpl->objs.size());
 	for (auto it : pimpl->fields)
 		vec.push_back(it.first);
@@ -158,7 +158,7 @@ std::vector<long> JSONObject::keyList() const
 	return vec;
 }
 
-StreamView JSONObject::nameof(long hash, JSONType type) const
+StreamView JSONObject::nameof(hash_t hash, JSONType type) const
 {
 	switch (type) {
 	case JSONType::array:
@@ -177,12 +177,12 @@ StreamView JSONObject::nameof(long hash, JSONType type) const
 
 void JSONObject::put(const char* name, const char* data)
 {
-	pimpl->fields[StreamView::hash(name)] = std::make_pair(StreamView(name, 0, strlen(name)), StreamView(data, 0, strlen(data)));
+	pimpl->fields[util::HASH(name)] = std::make_pair(StreamView(name, 0, strlen(name)), StreamView(data, 0, strlen(data)));
 }
 
 void JSONObject::put(const char* name, const StreamView& data)
 {
-	pimpl->fields[StreamView::hash(name)] = std::make_pair(StreamView(name, 0, strlen(name)), data);
+	pimpl->fields[util::HASH(name)] = std::make_pair(StreamView(name, 0, strlen(name)), data);
 }
 
 void JSONObject::put(const StreamView& name, const StreamView& data)
@@ -192,17 +192,17 @@ void JSONObject::put(const StreamView& name, const StreamView& data)
 
 void JSONObject::put(const char* name, StreamView&& data)
 {
-	pimpl->fields[StreamView::hash(name)] = std::make_pair(StreamView(name, 0, strlen(name)), data);
+	pimpl->fields[util::HASH(name)] = std::make_pair(StreamView(name, 0, strlen(name)), data);
 }
 
 void JSONObject::put(const char* name, const JSONObject& obj)
 {
-	pimpl->objs[StreamView::hash(name)] = std::make_pair(StreamView(name, 0, strlen(name)), obj);
+	pimpl->objs[util::HASH(name)] = std::make_pair(StreamView(name, 0, strlen(name)), obj);
 }
 
 void JSONObject::put(const char* name, const JSONArray& arr)
 {
-	pimpl->arrs[StreamView::hash(name)] = std::make_pair(StreamView(name, 0, strlen(name)), arr);
+	pimpl->arrs[util::HASH(name)] = std::make_pair(StreamView(name, 0, strlen(name)), arr);
 }
 
 void JSONObject::init()
@@ -212,10 +212,10 @@ void JSONObject::init()
 	std::streamsize p = txt.tell();
 	std::streamsize lastP = txt.tell();
 	while ((p = txt.find(':', p)) != StreamView::INVALID && lastP != StreamView::INVALID) {
-		for (; lastP < txt.getSize() && ignore(txt[lastP]); ++lastP);
+		for (; lastP < txt.size() && ignore(txt[lastP]); ++lastP);
 		++lastP;
 		StreamView name = txt.sub(lastP, txt.find('"', lastP));
-		for (++p; p < txt.getSize() && ignore(txt[p]); ++p);
+		for (++p; p < txt.size() && ignore(txt[p]); ++p);
 		if (txt[p] == '{' || txt[p] == '[') {
 			if(txt[p] == '{') pimpl->objs[name.hash()] = std::make_pair(name, getObject(txt, p));
 			else pimpl->arrs[name.hash()] = std::make_pair(name, getObject(txt, p));
@@ -259,7 +259,7 @@ Streamable& operator>>(Streamable& strm, JSONObject& json)
 			if (c == '{' || c == '[') ++braces;
 			else if (c == '}' || c == ']') --braces;
 		}
-		json.assign(strm.getStreamView(std::ios::beg, start, strm.tellg()));
+		json.assign(strm.getSharedView(std::ios::beg, start, strm.tellg()));
 	}
 	return strm;
 }
@@ -289,7 +289,7 @@ Streamable& operator>>(Streamable& strm, JSONArray& json)
 			if (c == '{' || c == '[') ++braces;
 			else if (c == '}' || c == ']') --braces;
 		}
-		json.assign(strm.getStreamView(std::ios::beg, start, strm.tellg()));
+		json.assign(strm.getSharedView(std::ios::beg, start, strm.tellg()));
 	}
 	return strm;
 }

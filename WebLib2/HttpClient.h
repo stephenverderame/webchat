@@ -38,7 +38,7 @@ private:
 public:
 	//returns a streamview with a zero length on failure
 	StreamView& operator[](const char * key);
-	StreamView& operator[](long hashKey);
+	StreamView& operator[](hash_t hashKey);
 
 	void put(StreamView&& key, StreamView&& val);
 	void put(const StreamView& key, const StreamView& val);
@@ -49,7 +49,7 @@ public:
 	HttpHeaders& operator=(HttpHeaders && h);
 	~HttpHeaders();
 	bool find(const char * key);
-	bool find(long hashKey);
+	bool find(hash_t hashKey);
 	void for_each(std::function<void(StreamView &, StreamView &)> pred);
 };
 struct HttpResponse {

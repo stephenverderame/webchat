@@ -96,6 +96,10 @@ public:
 
 	std::streamsize icur() const;
 
+	//iterators for output buffer
+	const char* obegin_c() const;
+	const char* oend_c() const;
+
 	//indicates that the data in the buffer is no longer needed
 	void purge();
 
@@ -106,10 +110,10 @@ public:
 	std::streamsize getBufferSize(std::ios_base::openmode type = std::ios::in) const;
 
 	//returns a streamview that has shared ownership of the buffer
-	StreamView getStreamView(std::streamoff origin = std::ios::beg, std::streamsize start = 0, std::streamsize end = -1) const;
+	StreamView getSharedView(std::streamoff origin = std::ios::beg, std::streamsize start = 0, std::streamsize end = -1) const;
 
 	//returns a streamview that does not own the buffer, and must have a shorter lifetime than the stream
-	StreamView view(std::streamsize start = 0, std::streamsize end = -1) const;
+	StreamView view(std::streamsize start = 0, std::streamsize end = -1, std::ios_base::openmode channel = std::ios::in) const;
 
 	//Writes the specified buffer from the other stream to this streams output buffer
 	//Starting with the streams current position
@@ -118,16 +122,24 @@ public:
 	//Warning: extremely expensive. Best to do at the end of the buffer
 	void remove(std::streamsize start, std::streamsize end = -1, std::ios::openmode buffer = std::ios::in);
 
+
 	/**
-	* Controlled reading of stream to buffer
-	* @param amount - amount to read
-	* @param hardAmount - don't stop until error, or the specified amount is read
-	* @param delim - stop when the delim is found. Reads at amount intervals
-	* @param hardDelim - don't stop until error, or the specified delimeter is found
-	* Combining hardDelim and hardAmount flags result in an AND combination (both the amount and delim must be reached)
-	* @return delimIndex if using a delim, otherwise amount read or < 0 on error
+	* Controlled reading of input stream to buffer until a delimeter is reached
+	* Fetchs packets of size packetSize, then searches for the delimeter
+	* @param delim the delimeter to search for
+	* @param packetSize the size of each new packet read from the input
+	* @param quitOnEmpty true to exit if no data is read, false to only exit on error or delim
+	* @return the index of the delimeter
 	*/
-	int fetch(std::streamsize amount, bool hardAmount = false, const char * delim = nullptr, bool hardDelim = false);
+	std::streamsize fetchUntil(const char* delim, std::streamsize packetSize = 10, bool quitOnEmpty = false);
+	/**
+	* Controlled reading of input stream to buffer
+	* Reads a specified amount of data
+	* @param size the amount to read
+	* @param quitOnEmpty true to quit if no more data is read, false to wait until size 
+	* @return amount actually read or < 0 if error
+	*/
+	std::streamsize fetchFor(std::streamsize size, bool quitOnEmpty = false);
 
 
 };

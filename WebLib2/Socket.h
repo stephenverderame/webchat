@@ -48,10 +48,12 @@ public:
 	Context(std::function<void(void)> init, std::function<void(void)> deinit) : dtor(deinit) { init(); }
 	~Context() { dtor(); }
 };
-#define WinsockContext \
-Context winsock_ctx([]() { \
+#define _CONCAT(X, Y) X##Y
+#define CONCAT(X, Y) _CONCAT(X, Y)
+#define CONCAT_LINE(X) CONCAT(X, __LINE__)
+#define WinsockContext(MAJOR, MINOR) \
+Context CONCAT_LINE(winsock_ctx) ([]() { \
 	WSAData d; \
-	WSAStartup(MAKEWORD(2, 1), &d); \
+	WSAStartup(MAKEWORD((MAJOR), (MINOR)), &d); \
 	}, []() {WSACleanup();})
-
 

@@ -22,17 +22,20 @@
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Coder.cpp" />
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpClient.cpp" />
     <ClCompile Include="JSON.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="SSLSocket.cpp" />
     <ClCompile Include="Streamable.cpp" />
     <ClCompile Include="StreamView.cpp" />
+    <ClCompile Include="StringMap.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="Coder.h" />
     <ClInclude Include="File.h" />
+    <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpClient.h" />
     <ClInclude Include="JSON.h" />
     <ClInclude Include="Socket.h" />
@@ -40,6 +43,7 @@
     <ClInclude Include="Streamable.h" />
     <ClInclude Include="StreamableImpl.h" />
     <ClInclude Include="StreamView.h" />
+    <ClInclude Include="StringMap.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

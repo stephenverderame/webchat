@@ -29,20 +29,28 @@ public:
 	JSONObject();
 	~JSONObject();
 
-	//return 0 length StreamView on failure
-	StreamView get(long hash) const;
+	/**
+	* This function will fail if the value you are trying to receive is an Object or Array
+	* @see typeof()
+	* @return 0 length StreamView on failure, else the content of the field
+	*/
+	StreamView get(hash_t hash) const;
 	StreamView get(const char* name) const;
 	//return nullptr on failure
-	JSONObject* getObj(long hash) const;
+	JSONObject* getObj(hash_t hash) const;
 	JSONObject* getObj(const char* name) const;
-	JSONArray* getArray(long hash) const;
+	JSONArray* getArray(hash_t hash) const;
 	JSONArray* getArray(const char* name) const;
 
-	JSONType typeof(long hash) const;
+	JSONType typeof(hash_t hash) const;
 	JSONType typeof(const char* name) const;
 
-	std::vector<long> keyList() const;
-	StreamView nameof(long hash, JSONType type) const;
+	/**
+	* @return a list of hashes of all fields of this object
+	* Hashes can be passed to any function and can be treated as a unique identifier fo each field in the Object
+	*/
+	std::vector<hash_t> keyList() const;
+	StreamView nameof(hash_t hash, JSONType type) const;
 
 
 
@@ -79,8 +87,12 @@ public:
 	int size() const;
 	StreamView operator[](int index);
 
+	/**
+	* If an element is known to be an array or an object, returns the given reference instead of having to reconstruct one each time from its text representation
+	*/
 	JSONArray* getArray(int index);
 	JSONObject* getObj(int index);
+
 	StreamView get(int index);
 
 	inline void assign(StreamView&& txt);

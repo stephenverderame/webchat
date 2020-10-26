@@ -31,10 +31,10 @@ int Streamable::underflow()
 		return std::streambuf::traits_type::to_int_type(*gptr());
 	else {
 		auto i = gptr() - eback();
-		if (pimpl->iend == pimpl->ibuffer->capacity())
-			pimpl->ibuffer->resize(pimpl->ibuffer->capacity() * 2);
+		if (pimpl->iend == pimpl->ibuffer->size())
+			pimpl->ibuffer->resize(pimpl->ibuffer->size() * 2);
 		int r;
-		if ((r = nvi_read(&pimpl->ibuffer->at(pimpl->iend), pimpl->ibuffer->capacity() - pimpl->iend)) <= 0) return std::streambuf::traits_type::eof();
+		if ((r = nvi_read(&pimpl->ibuffer->at(pimpl->iend), pimpl->ibuffer->size() - pimpl->iend)) <= 0) return std::streambuf::traits_type::eof();
 		pimpl->iend += r;
 		setgetp(&pimpl->ibuffer->at(0), &pimpl->ibuffer->at(i), &pimpl->ibuffer->at(0) + pimpl->iend);
 		return std::streambuf::traits_type::to_int_type(pimpl->ibuffer->at(i));
@@ -152,7 +152,20 @@ int Streamable::syncOutputBuffer()
 
 int Streamable::syncInputBuffer()
 {
-	return fetch(std::numeric_limits<std::streamsize>().max()); //fetch as much data as there is
+	long ret = 0;
+	long long read = 0;
+	auto pos = gptr() - eback();
+	do {
+		if (pimpl->iend == pimpl->ibuffer->size())
+			pimpl->ibuffer->resize(pimpl->ibuffer->size() * 2);
+		ret = nvi_read(&pimpl->ibuffer->at(pimpl->iend), pimpl->ibuffer->size() - pimpl->iend);
+		if (ret >= 0) {
+			read += ret;
+			pimpl->iend += ret;
+		}
+	} while (ret > 0);
+	setg(&pimpl->ibuffer->at(0), &pimpl->ibuffer->at(pos), &pimpl->ibuffer->at(0) + pimpl->iend);
+	return read;
 }
 
 std::streamsize Streamable::getBufferSize(std::ios_base::openmode type) const
@@ -163,16 +176,22 @@ std::streamsize Streamable::getBufferSize(std::ios_base::openmode type) const
 		return pimpl->o;
 }
 
-StreamView Streamable::getStreamView(std::streamoff origin, std::streamsize start, std::streamsize end) const
+StreamView Streamable::getSharedView(std::streamoff origin, std::streamsize start, std::streamsize end) const
 {
 	start = origin == std::ios::beg ? start : origin == std::ios::cur ? start + icur() : start + (egptr() - eback());
 	return StreamView(pimpl->ibuffer, start, end == -1 ? pimpl->iend : end);
 }
 
-StreamView Streamable::view(std::streamsize start, std::streamsize end) const
+StreamView Streamable::view(std::streamsize start, std::streamsize end, std::ios::openmode channel) const
 {
-	end = end == -1 ? pimpl->iend : end;
-	return StreamView(&pimpl->ibuffer->at(0), start, end);
+	if (channel == std::ios::in) {
+		end = end == -1 ? pimpl->iend : end;
+		return StreamView(&pimpl->ibuffer->at(0), start, end);
+	}
+	else {
+		end = end == -1 ? (epptr() - pbase()) : end;
+		return StreamView(&pimpl->obuffer[0], start, end);
+	}
 }
 
 void Streamable::write(const Streamable & other, std::ios_base::openmode buffer)
@@ -196,37 +215,40 @@ void Streamable::remove(std::streamsize start, std::streamsize end, std::ios::op
 	}
 }
 
-int Streamable::fetch(std::streamsize amount, bool hardAmount, const char * delim, bool hardDelim)
+std::streamsize Streamable::fetchUntil(const char* delim, std::streamsize packetSize, bool quitOnEmpty)
 {
-	std::streamsize oldPos = gptr() - &pimpl->ibuffer->at(0);
-
-	std::streamsize read = 0;
-	int ret;
-	std::unique_ptr<StreamView> sv;
-	if (delim != nullptr) sv = std::make_unique<StreamView>();
-	bool foundDelim = delim == nullptr;
+	int ret = 0;
+	auto i = gptr() - eback();
+	std::streamsize index = StreamView::INVALID;
 	do {
-		if (pimpl->iend == pimpl->ibuffer->capacity())
-			pimpl->ibuffer->resize(pimpl->ibuffer->capacity() * 2);
-		read = !hardAmount && delim != nullptr ? 0 : read;
-		ret = nvi_read(&pimpl->ibuffer->at(pimpl->iend), std::min(pimpl->ibuffer->capacity() - pimpl->iend, amount - read));
-		if (ret < 0) return ret;
-		if (delim != nullptr) {
-			sv->assign(&pimpl->ibuffer->at(0), std::max(pimpl->iend - (strlen(delim) - 1), 0LL), pimpl->iend + ret);
-			std::streamsize ss;
-			if ((ss = sv->find(delim)) != StreamView::INVALID) {
-				foundDelim = true;
-				if (!hardAmount || (hardDelim && read + ret >= amount)) {
-					pimpl->iend += ret;
-					setgetp(&pimpl->ibuffer->at(0), &pimpl->ibuffer->at(oldPos), &pimpl->ibuffer->at(0) + pimpl->iend);
-					return sv->rel2abs(ss);
-				}
-			}
+		if (pimpl->iend == pimpl->ibuffer->size())
+			pimpl->ibuffer->resize(pimpl->ibuffer->size() * 2);
+		ret = nvi_read(&pimpl->ibuffer->at(pimpl->iend), std::min(pimpl->ibuffer->size() - pimpl->iend, packetSize));
+		if (ret >= 0) {
+			StreamView view(&pimpl->ibuffer->at(0), std::max(pimpl->iend - strlen(delim), 0LL), pimpl->iend + ret);
+			index = view.rel2abs(view.find(delim));
+			pimpl->iend += ret;
 		}
-		pimpl->iend += ret;
-		read += ret;
-	} while ((hardDelim && !foundDelim) || (hardAmount && read < amount) || (ret > 0 && !foundDelim && read < amount));
-	setgetp(&pimpl->ibuffer->at(0), &pimpl->ibuffer->at(oldPos), &pimpl->ibuffer->at(0) + pimpl->iend);
+	} while ((quitOnEmpty && ret > 0 && index == StreamView::INVALID) || (ret >= 0 && index == StreamView::INVALID));
+	setg(&pimpl->ibuffer->at(0), &pimpl->ibuffer->at(i), &pimpl->ibuffer->at(0) + pimpl->iend);
+	return index;
+}
+
+std::streamsize Streamable::fetchFor(std::streamsize size, bool quitOnEmpty)
+{
+	int ret = 0;
+	long long read = 0;
+	auto i = gptr() - eback();
+	do {
+		if (pimpl->iend == pimpl->ibuffer->size())
+			pimpl->ibuffer->resize(pimpl->ibuffer->size() * 2);
+		ret = nvi_read(&pimpl->ibuffer->at(pimpl->iend), std::min(pimpl->ibuffer->size() - pimpl->iend, size - read));
+		if (ret >= 0) {
+			read += ret;
+			pimpl->iend += ret;
+		}
+	} while ((quitOnEmpty && ret > 0 && read < size) || (ret >= 0 && read < size));
+	setg(&pimpl->ibuffer->at(0), &pimpl->ibuffer->at(i), &pimpl->ibuffer->at(0) + pimpl->iend);
 	return read;
 }
 
@@ -269,6 +291,16 @@ char * Streamable::icurrent()
 std::streamsize Streamable::icur() const
 {
 	return gptr() - eback();
+}
+
+const char* Streamable::obegin_c() const
+{
+	return pbase();
+}
+
+const char* Streamable::oend_c() const
+{
+	return epptr();
 }
 
 void Streamable::purge()

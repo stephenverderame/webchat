@@ -68,10 +68,10 @@ HttpResponse HttpClient::getResponse()
 	int e;
 	if ((e = stream->syncOutputBuffer()) < 0)
 		printf("Syncing output error: %d", stream->getError(e));
-	auto headerEndIndex = stream->fetch(500, false, "\r\n\r\n", true);
+	auto headerEndIndex = stream->fetchUntil("\r\n\r\n", 500);
 	HttpResponse resp;
 	Streamable & s = *stream.get();
-	StreamView buffer = stream->getStreamView();
+	StreamView buffer = stream->getSharedView();
 	StreamView line;
 	if (buffer.getsub(line, "\r\n")) {
 		std::streamsize firstSpace = line.find(' ');
@@ -79,20 +79,25 @@ HttpResponse HttpClient::getResponse()
 			resp.responseCode = line.sub(firstSpace + 1, firstSpace + 4).parse();
 			resp.responseMessage = line.sub(line.find(' ', firstSpace + 1) + 1);
 			std::streamsize lastHeaderPart = buffer.tell();
-			while (buffer.getsub(line, "\r\n") && line.getSize() > 0) {
+			while (buffer.getsub(line, "\r\n") && line.size() > 0) {
 				lastHeaderPart = buffer.tell();
 				std::streamsize pos = line.find(':');
 				if (pos != StreamView::INVALID) {
 					resp.headers.put(line.sub(0, pos), line.sub(pos + 2));
+					StreamView sv = line.sub(0, pos);
+					std::cout << sv << ": " << line.sub(pos + 2) << "\n";
+					if (sv == "content-encoding") {
+						std::cout << sv.hashCaseInsensitive() << " : " << util::HASH_NO_CASE("Content-Encoding") << std::endl;
+					}
 				}
 				else {					
 					break;
 				}
 			}
 			stream->seekg(headerEndIndex + 4);
-			StreamView & transferEncoding = resp.headers[StreamView::HASH("Transfer-Encoding")];
-			StreamView & contentEncoding = resp.headers[StreamView::HASH("Content-Encoding")];
-			if (transferEncoding.getSize() > 0 && transferEncoding == "chunked") {
+			StreamView & transferEncoding = resp.headers[util::HASH_NO_CASE("Transfer-Encoding")];
+			StreamView & contentEncoding = resp.headers[util::HASH_NO_CASE("Content-Encoding")];
+			if (transferEncoding.size() > 0 && transferEncoding == "chunked") {
 				/*
 				* Chunk format:
 				*   size in hex\r\n
@@ -100,10 +105,10 @@ HttpResponse HttpClient::getResponse()
 				* ... next chunk
 				*/
 
-				int size;
+				std::streamsize size;
 				do {
 					if (stream->view().find("\r\n", stream->icur()) == StreamView::INVALID) {
-						stream->fetch(10, false, "\r\n", true);
+						stream->fetchUntil("\r\n");
 					}
 					std::streampos initial = s.tellg();
 					s >> std::hex >> size;
@@ -112,32 +117,33 @@ HttpResponse HttpClient::getResponse()
 					stream->remove(initial, now);
 					now = s.tellg();
 					if (size > 0) {
-						stream->fetch(size + 2 - (stream->getBufferSize() - now), true);						
+						stream->fetchFor(size + 2LL - (stream->getBufferSize() - now));						
 					}
-					s.pubseekoff(size + 2, std::ios::cur, std::ios::in);
+					s.pubseekoff(size + 2LL, std::ios::cur, std::ios::in);
 					now = s.tellg();
 					stream->remove(now - std::streamoff(2), now); //remove ending \r\n
 				} while (size > 0);
 				stream->seekg(headerEndIndex + 4);
 				printf("%d\n", headerEndIndex);
 			}
-			else if (resp.headers.find(StreamView::HASH("Content-Length"))) {
+			else if (resp.headers.find(util::HASH_NO_CASE("Content-Length"))) {
 				std::streampos initial = s.tellg();
-				std::streampos len = resp.headers[StreamView::HASH("Content-Length")].parse();
+				std::streampos len = resp.headers[util::HASH_NO_CASE("Content-Length")].parse();
 				while ((std::streamoff)initial + len >= s.getBufferSize()) {
 					if (s.syncInputBuffer() != 0) break;
 				}
 				stream->seekg(headerEndIndex + 4);
 			}
-			if (contentEncoding.getSize() > 0 && contentEncoding == "gzip") {
-				File test("test.gz", FileMode::write + FileMode::binary);
-				test << stream;
+			std::cout << contentEncoding << "\n";
+			if (contentEncoding.size() > 0 && contentEncoding == "gzip") {
+//				File test("test.gz", FileMode::write + FileMode::binary);
+//				test << stream;
 				GzipCoder * gzip = new GzipCoder(stream.get());
 				int err = gzip->decode();
 				printf("Gzip error: %d %d\n", err, gzip->getError(err));
 				stream = std::unique_ptr<Streamable>(gzip);
 			}
-			resp.content = stream->getStreamView(std::ios::cur);
+			resp.content = stream->getSharedView(std::ios::cur);
 		}
 	}
 	return std::move(resp);
@@ -160,14 +166,14 @@ HttpClient & HttpClient::operator=(HttpClient && c)
 HttpClient::~HttpClient() = default;
 
 struct HttpHeaders::impl {
-	std::unordered_map<long, std::pair<StreamView, StreamView>> data;
+	std::unordered_map<hash_t, std::pair<StreamView, StreamView>> data;
 	StreamView emptyView;
 };
 StreamView& HttpHeaders::operator[](const char * key)
 {
-	return operator[](StreamView::hash(key));
+	return operator[](util::HASH_NO_CASE(key));
 }
-StreamView& HttpHeaders::operator[](long hashKey)
+StreamView& HttpHeaders::operator[](hash_t hashKey)
 {
 	auto it = pimpl->data.find(hashKey);
 	if (it != pimpl->data.end())
@@ -176,20 +182,20 @@ StreamView& HttpHeaders::operator[](long hashKey)
 }
 void HttpHeaders::put(StreamView && key, StreamView && val)
 {
-	pimpl->data[key.hash()] = std::make_pair(key, val);
+	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
 }
 void HttpHeaders::put(const StreamView& key, const StreamView& val)
 {
 
-	pimpl->data[key.hash()] = std::make_pair(key, val);
+	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
 }
 void HttpHeaders::put(StreamView && key, const StreamView & val)
 {
-	pimpl->data[key.hash()] = std::make_pair(key, val);
+	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
 }
 void HttpHeaders::put(const StreamView & key, StreamView && val)
 {
-	pimpl->data[key.hash()] = std::make_pair(key, val);
+	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
 }
 HttpHeaders::HttpHeaders() : pimpl(std::make_unique<impl>())
 {
@@ -210,12 +216,12 @@ HttpHeaders::~HttpHeaders() = default;
 
 bool HttpHeaders::find(const char * key)
 {
-	return (*this)[key].getSize() > 0;
+	return (*this)[key].size() > 0;
 }
 
-bool HttpHeaders::find(long hashKey)
+bool HttpHeaders::find(hash_t hashKey)
 {
-	return (*this)[hashKey].getSize() > 0;
+	return (*this)[hashKey].size() > 0;
 }
 
 void HttpHeaders::for_each(std::function<void(StreamView &, StreamView &)> pred)

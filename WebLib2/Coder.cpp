@@ -51,10 +51,10 @@ bool GzipCoder::nvi_available() const
 
 int GzipCoder::nvi_encode()
 {
-	z_stream zs;
+/*	z_stream zs;
 	memset(&zs, Z_NULL, sizeof(z_stream));
 	if (str != nullptr) {
-		std::streamsize sizeToProcess = (str->iend_c() - str->icurrent_c() + 1);
+		std::streamsize sizeToProcess = (str->iend_c() - str->icurrent_c() + 1LL);
 //		result.resize(sizeToProcess * 2);
 		zs.avail_in = sizeToProcess;
 		zs.next_in = (Bytef*)str->icurrent_c();
@@ -86,7 +86,8 @@ int GzipCoder::nvi_encode()
 		setg(result.data(), result.data() + 1, result.data() + zs.total_out);
 		syncOutputBuffer();
 	}
-	return zs.total_out;
+	return zs.total_out;*/
+	return 0;
 }
 
 int GzipCoder::nvi_decode()
@@ -95,30 +96,33 @@ int GzipCoder::nvi_decode()
 	memset(&zs, Z_NULL, sizeof(z_stream));
 	if (str != nullptr) {
 		std::streamsize sizeToProcess = str->iend_c() - str->icurrent_c();
-		int bufferMultiplier = 2;
+		int bufferMultiplier = 1;
 		int err = 0;
 		std::streamsize processedOutput = 0, processedInput = 0;
 		err = inflateInit2(&zs, 16 + MAX_WBITS);
 		if (err < Z_OK) return err;
+		pimpl->ibuffer->resize(sizeToProcess * 5);
 		do {
-			processedOutput += zs.total_out;
-			processedInput += zs.total_in;
-			bufferMultiplier *= 2;
-			result.resize(sizeToProcess * bufferMultiplier);
+			processedOutput = zs.total_out;
+			processedInput = zs.total_in;
+			if (err == Z_MEM_ERROR || err == Z_BUF_ERROR) {
+				bufferMultiplier *= 2;
+				pimpl->ibuffer->resize(sizeToProcess * bufferMultiplier);
+			}
 			zs.avail_in = sizeToProcess - processedInput;
 			zs.next_in = (Bytef*)str->icurrent_c() + processedInput;
-			zs.next_out = (Bytef*)result.data() + processedOutput;
-			zs.avail_out = result.size() - processedOutput;
+			zs.next_out = (Bytef*)pimpl->ibuffer->data() + processedOutput;
+			zs.avail_out = pimpl->ibuffer->size() - processedOutput;
 			err = inflate(&zs, Z_FINISH);			
-		} while (err == Z_MEM_ERROR);
-		processedOutput += zs.total_out;
+		} while (err == Z_MEM_ERROR || err == Z_BUF_ERROR || (processedInput < sizeToProcess && err > 0));
+		processedOutput = zs.total_out;
 		int e = inflateEnd(&zs);
 		if (err < Z_OK) return err;
 		pimpl->iend = processedOutput;
-		setg(result.data(), result.data() + 1, result.data() + processedOutput);
+		setg(pimpl->ibuffer->data(), pimpl->ibuffer->data(), pimpl->ibuffer->data() + pimpl->iend);
 	}
 	else {
-		std::streamsize sizeToProcess = pimpl->o;
+/*		std::streamsize sizeToProcess = pimpl->o;
 		int bufferMultiplier = 2;
 		int err = 0;
 		do {
@@ -135,8 +139,8 @@ int GzipCoder::nvi_decode()
 		} while (err == Z_MEM_ERROR);
 		if (err < Z_OK) return err;
 		pimpl->iend = zs.total_out;
-		setg(result.data(), result.data() + 1, result.data() + zs.total_out);
-		syncOutputBuffer();
+		setg(result.data(), result.data(), result.data() + zs.total_out);
+		syncOutputBuffer();*/
 	}
 	return zs.total_out;
 }
