@@ -65,9 +65,7 @@ void HttpClient::send()
 }
 HttpResponse HttpClient::getResponse()
 {
-	int e;
-	if ((e = stream->syncOutputBuffer()) < 0)
-		printf("Syncing output error: %d", stream->getError(e));
+	stream->syncOutputBuffer();
 	auto headerEndIndex = stream->fetchUntil("\r\n\r\n", 500);
 	HttpResponse resp;
 	Streamable & s = *stream.get();

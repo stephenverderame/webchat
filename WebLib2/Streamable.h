@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include "StreamException.h"
 // Check windows
 #if _WIN32 || _WIN64
 #if _WIN64
@@ -31,38 +32,47 @@ protected:
 	struct impl;
 	std::unique_ptr<impl> pimpl;
 protected:
-	/*
-	 Writes data to the underlying object
-	 @return amount of bytes written or < 0 for error
+	/**
+	* Writes data to the underlying object
+	* @return amount of bytes written
+	* @throw StreamException on error
 	*/
-	virtual int nvi_write(const char * data, size_t len) = 0;
-	/*
-	 Reads data from the underlying object
-	 @return amount of bytes written or < 0 for error
+	virtual int nvi_write(const char * data, size_t len) throw(StreamException) = 0;
+	/**
+	* Reads data from the underlying object
+	* @return amount of bytes written or < 0 to signify eof
+	* @throw StreamException on error
 	*/
-	virtual int nvi_read(char * data, size_t amtToRead) const = 0;
-	/*
-	 @param errorCode. The return value from another function (ie. nvi_write)
-	 @return an extended information error code to get more information
+	virtual int nvi_read(char * data, size_t amtToRead) const throw(StreamException) = 0;
+	/**
+	* @param errorCode. The return value from another function (ie. nvi_write)
+	* @return an extended information error code to get more information
 	*/
 	virtual int nvi_error(int errorCode) const = 0;
 	virtual int minAvailableBytes() const = 0;
 	//@return true if there is data available on underlying object
 	virtual bool nvi_available() const = 0;
 
-	//appends character to output buffer
-	int overflow(int ch) override;
-	//gets character from input buffer
-	int underflow() override;
+	/**
+	 * Appends character to output buffer. Syncs the output buffer if full
+	 * @param ch the new character
+	 * @return the new character
+	 */
+	int overflow(int ch) throw(StreamException) override;
+	/**
+	 * Gets a character from the input buffer. Syncs the input buffer if empty
+	 * @return the next character or eof
+	 */
+	int underflow() throw(StreamException) override;
 	//puts a block of characters into the input buffer
-	std::streamsize xsputn(const char * s, std::streamsize n) override;
+	std::streamsize xsputn(const char * s, std::streamsize n) throw(StreamException) override;
 //	std::streamsize xsgetn(char * s, std::streamsize n) override;
 	//seeks through buffer
 	std::streampos seekpos(std::streampos pos, std::ios_base::openmode streamType = std::ios_base::in) override;
 	std::streampos seekoff(std::streamoff offset, std::ios_base::seekdir way, std::ios_base::openmode mode = std::ios_base::in) override;
 
 	//writes entire buffer and reads everything
-	int sync() override;
+	int sync() throw(StreamException) override;
 
 	//makes sure index is within the stream buffer.
 	std::streamsize checkSeekBounds(std::streamsize index, std::ios_base::openmode streamType);
@@ -103,9 +113,9 @@ public:
 	//indicates that the data in the buffer is no longer needed
 	void purge();
 
-	//gets/writes data until there is no more (0 return) or error (non zero return)
-	int syncOutputBuffer();
-	int syncInputBuffer();
+	//gets/writes data until there is no more (0 return) or error
+	int syncOutputBuffer() throw(StreamException);
+	int syncInputBuffer() throw(StreamException);
 
 	std::streamsize getBufferSize(std::ios_base::openmode type = std::ios::in) const;
 
@@ -117,7 +127,7 @@ public:
 
 	//Writes the specified buffer from the other stream to this streams output buffer
 	//Starting with the streams current position
-	void write(const Streamable & other, std::ios_base::openmode buffer);
+	void write(const Streamable& other, std::ios_base::openmode buffer) throw(StreamException);
 
 	//Warning: extremely expensive. Best to do at the end of the buffer
 	void remove(std::streamsize start, std::streamsize end = -1, std::ios::openmode buffer = std::ios::in);
@@ -130,16 +140,18 @@ public:
 	* @param packetSize the size of each new packet read from the input
 	* @param quitOnEmpty true to exit if no data is read, false to only exit on error or delim
 	* @return the index of the delimeter
+	* @throw StreamException on failure
 	*/
-	std::streamsize fetchUntil(const char* delim, std::streamsize packetSize = 10, bool quitOnEmpty = false);
+	std::streamsize fetchUntil(const char* delim, std::streamsize packetSize = 10, bool quitOnEmpty = false) throw(StreamException);
 	/**
 	* Controlled reading of input stream to buffer
 	* Reads a specified amount of data
 	* @param size the amount to read
 	* @param quitOnEmpty true to quit if no more data is read, false to wait until size 
-	* @return amount actually read or < 0 if error
+	* @return amount actually read
+	* @throw StreamException on failure
 	*/
-	std::streamsize fetchFor(std::streamsize size, bool quitOnEmpty = false);
+	std::streamsize fetchFor(std::streamsize size, bool quitOnEmpty = false) throw(StreamException);
 
 
 };
@@ -155,8 +167,9 @@ egptr()	End of the buffered part of the input sequence
 
 /**
 * @param uri    uri in the form of scheme:[//]host[:port][/path] [] Denote optional components
-* @return       Streamable object that interfaces with the desired stream or nullptr on failure
+* @return       Streamable object that interfaces with the desired stream
+* @throw		StreamException on failure
 */
-std::unique_ptr<Streamable> make_stream(const char* uri);
+std::unique_ptr<Streamable> make_stream(const char* uri) throw(StreamException);
 
-std::ostream& operator<<(std::ostream& strm, const Streamable& other);
+std::ostream& operator<<(std::ostream& strm, const Streamable& other) throw(StreamException);

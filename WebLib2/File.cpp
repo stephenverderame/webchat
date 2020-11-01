@@ -9,12 +9,18 @@ constexpr inline bool isLittleEndian()
 
 int File::nvi_write(const char * data, size_t len)
 {
-	return fwrite(data, 1, len, f);
+	int w = fwrite(data, 1, len, f);
+	int err;
+	if (w != len && (err = ferror(f)) != 0) throw StreamException(err, "Error writing to file");
+	return w;
 }
 
 int File::nvi_read(char * data, size_t amtToRead) const
 {
-	return fread(data, 1, amtToRead, f);
+	int r = fread(data, 1, amtToRead, f);
+	int err;
+	if (r != amtToRead && (err = ferror(f)) != 0) throw StreamException(err, "Error reading from file");
+	return r;
 }
 
 int File::nvi_error(int errorCode) const
@@ -54,12 +60,15 @@ const char * File::fMode(FileMode& m) const
 
 File::File(const char * file, FileMode mode)
 {
-	f = fopen(file, fMode(mode));
+	if((f = fopen(file, fMode(mode))) == NULL) throw StreamException(-1, "Cannot open file");
 }
 
 File::~File()
 {
-	syncOutputBuffer();
+	try {
+		syncOutputBuffer();
+	}
+	catch (StreamException&) {};
 	fclose(f);
 }
 FileMode operator+(FileMode a, FileMode b)

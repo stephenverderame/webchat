@@ -7,9 +7,4 @@ protected:
 public:
 	void attach(std::unique_ptr<Streamable> && stream);
 };
-class Server
-{
-public:
-	virtual std::unique_ptr<Client> accept() = 0;
-};
 

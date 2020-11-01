@@ -7,16 +7,30 @@ class Coder : public Streamable
 protected:
 	const Streamable * str;
 protected:
-	virtual int nvi_encode() = 0;
-	virtual int nvi_decode() = 0;
+	virtual int nvi_encode() throw(StreamException) = 0;
+	virtual int nvi_decode() throw(StreamException) = 0;
 public:
-	//Primes the encoder/decoder. Results are stored in input buffer of the current stream
-	//Reads from the bound Streamable (which must be already synced) or the output buffer
-	//Always copies data
-	int encode();
-	int decode();
+	/**
+	 * Primes the encoder and stores the encoded data in this Streams input buffer
+	 * @return the amount of encoded data in the input stream
+	 * @throw StreamException on error
+	 */
+	int encode() throw(StreamException);
+	/**
+	 * Primes the decoder and stores the decoded data in this Streams input buffer
+	 * @return the amount of encoded data in the input stream
+	 * @throw StreamException on error
+	 */
+	int decode() throw(StreamException);
 
+	/**
+	 * Constructs a Coder with the specified Stream's input buffer as the Coder input
+	 * @param input the Stream to encode/decode
+	 */
 	Coder(const Streamable * input);
+	/** 
+	 * Constructs a coder with the output buffer as the input for encoding/decoding
+	 */
 	Coder();
 };
 class GzipCoder : public Coder {
@@ -27,8 +41,8 @@ protected:
 	int minAvailableBytes() const override;
 	bool nvi_available() const override;
 
-	int nvi_encode() override;
-	int nvi_decode() override;
+	int nvi_encode() throw(StreamException) override;
+	int nvi_decode() throw(StreamException) override;
 public:
 	GzipCoder(const Streamable * input) : Coder(input) {}
 	GzipCoder() : Coder() {}

@@ -21,25 +21,35 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Coder.cpp" />
+    <ClCompile Include="Connection.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="HttpClient.cpp" />
     <ClCompile Include="JSON.cpp" />
+    <ClCompile Include="Listener.cpp" />
+    <ClCompile Include="openssl.cpp" />
+    <ClCompile Include="RAIIContext.cpp" />
     <ClCompile Include="Socket.cpp" />
     <ClCompile Include="SSLSocket.cpp" />
     <ClCompile Include="Streamable.cpp" />
+    <ClCompile Include="StreamException.cpp" />
     <ClCompile Include="StreamView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Client.h" />
     <ClInclude Include="Coder.h" />
+    <ClInclude Include="Connection.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpClient.h" />
     <ClInclude Include="JSON.h" />
+    <ClInclude Include="Listener.h" />
+    <ClInclude Include="openssl.h" />
+    <ClInclude Include="RAIIContext.h" />
     <ClInclude Include="Socket.h" />
     <ClInclude Include="SSLSocket.h" />
     <ClInclude Include="Streamable.h" />
     <ClInclude Include="StreamableImpl.h" />
+    <ClInclude Include="StreamException.h" />
     <ClInclude Include="StreamView.h" />
     <ClInclude Include="StringMap.h" />
   </ItemGroup>

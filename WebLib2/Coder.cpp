@@ -26,11 +26,11 @@ Coder::Coder() : str(nullptr)
 //Uses parent buffer, so when that runs out there is no more data
 int GzipCoder::nvi_write(const char * data, size_t len)
 {
-	return 0;
+	return -1;
 }
 int GzipCoder::nvi_read(char * data, size_t amt) const
 {
-	return 0;
+	return -1;
 }
 
 int GzipCoder::nvi_error(int errorCode) const
@@ -49,7 +49,7 @@ bool GzipCoder::nvi_available() const
 	return false;
 }
 
-int GzipCoder::nvi_encode()
+int GzipCoder::nvi_encode() throw(StreamException)
 {
 	z_stream zs;
 	memset(&zs, Z_NULL, sizeof(z_stream));
@@ -58,8 +58,7 @@ int GzipCoder::nvi_encode()
 	int bufferMultiplier = 1;
 	int err = 0;
 	std::streamsize processedOutput = 0, processedInput = 0;
-	err = deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
-	if (err < Z_OK) return err;
+	if ((err = deflateInit2(&zs, Z_DEFAULT_COMPRESSION, Z_DEFLATED, 16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY)) < Z_OK) throw StreamException(err, "Gzip error init deflate");;
 	pimpl->ibuffer->resize(deflateBound(&zs, sizeToProcess));
 	do {
 		processedOutput = zs.total_out;
@@ -76,13 +75,13 @@ int GzipCoder::nvi_encode()
 	} while (err == Z_MEM_ERROR || err == Z_BUF_ERROR || (processedInput < sizeToProcess && err > 0));
 	processedOutput = zs.total_out;
 	int e = deflateEnd(&zs);
-	if (err < Z_OK) return err;
+	if (err < Z_OK) throw StreamException(err, "Gzip error deflating");
 	pimpl->iend = processedOutput;
 	setg(pimpl->ibuffer->data(), pimpl->ibuffer->data(), pimpl->ibuffer->data() + pimpl->iend);
 	return zs.total_out;
 }
 
-int GzipCoder::nvi_decode()
+int GzipCoder::nvi_decode() throw(StreamException)
 {
 	z_stream zs;
 	memset(&zs, Z_NULL, sizeof(z_stream));
@@ -92,7 +91,7 @@ int GzipCoder::nvi_decode()
 	int err = 0;
 	std::streamsize processedOutput = 0, processedInput = 0;
 	err = inflateInit2(&zs, 16 + MAX_WBITS);
-	if (err < Z_OK) return err;
+	if (err < Z_OK) throw StreamException(err, "Gzip error initializing infaltion");
 	pimpl->ibuffer->resize(sizeToProcess * 5);
 	do {
 		processedOutput = zs.total_out;
@@ -109,7 +108,7 @@ int GzipCoder::nvi_decode()
 	} while (err == Z_MEM_ERROR || err == Z_BUF_ERROR || (processedInput < sizeToProcess && err > 0));
 	processedOutput = zs.total_out;
 	int e = inflateEnd(&zs);
-	if (err < Z_OK) return err;
+	if (err < Z_OK) throw StreamException(err, "Gzip error inflating");
 	pimpl->iend = processedOutput;
 	setg(pimpl->ibuffer->data(), pimpl->ibuffer->data(), pimpl->ibuffer->data() + pimpl->iend);
 	return zs.total_out;

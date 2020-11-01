@@ -1,31 +1,11 @@
 #pragma once
-#define WIN32_LEAN_AND_MEAN //excludes rarely used headers
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
-#include <WinSock2.h>
+#include "Connection.h"
 #include "Streamable.h"
 #include <functional>
-using socket_t = unsigned int;
-using port_t = unsigned short;
 
-#define HTTP_PORT 80
-#define HTTPS_PORT 443
-enum class FDMethod {
-	TCP = SOCK_STREAM,
-	UDP = SOCK_DGRAM
-};
-class Address {
+class Socket : public Streamable, public Connectable {
 private:
-	in_addr address; //this is just a long
-public:
-	Address(const char * str);
-	inline in_addr get() { return address; }
-	inline operator in_addr() { return address; }
-};
-class Socket : public Streamable {
-private:
-	socket_t sock;
-	sockaddr_in data;
-	bool blocking;
+	Connection con;
 protected:
 	int nvi_write(const char * data, size_t len) override;
 	int nvi_read(char * data, size_t amt) const override;
@@ -33,27 +13,8 @@ protected:
 	int minAvailableBytes() const override;
 	bool nvi_available() const override;
 public:
-	Socket();
-	Socket(Address addr, FDMethod meth, port_t p);
-	~Socket();
-	int open(Address addr, FDMethod meth, port_t p);
-	void shouldBlock(bool blocking);
-	void close();
+	Connection& getConnection() { return con; }
+	Socket(Connection && s);
+	void open() throw(StreamException) override;
 };
-//Custom RAII class
-class Context {
-private:
-	std::function<void(void)> dtor;
-public:
-	Context(std::function<void(void)> init, std::function<void(void)> deinit) : dtor(deinit) { init(); }
-	~Context() { dtor(); }
-};
-#define _CONCAT(X, Y) X##Y
-#define CONCAT(X, Y) _CONCAT(X, Y)
-#define CONCAT_LINE(X) CONCAT(X, __LINE__)
-#define WinsockContext(MAJOR, MINOR) \
-Context CONCAT_LINE(winsock_ctx) ([]() { \
-	WSAData d; \
-	WSAStartup(MAKEWORD((MAJOR), (MINOR)), &d); \
-	}, []() {WSACleanup();})
 

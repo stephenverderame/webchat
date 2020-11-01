@@ -2,6 +2,9 @@
 #include <type_traits>
 #include "StreamableImpl.h"
 #include <algorithm>
+#include "Connection.h"
+#undef min
+#undef max
 int Streamable::getError(int code) const
 {
 	return nvi_error(code);
@@ -137,12 +140,11 @@ void Streamable::setgetp(char * begin, char * next, char * end)
 //	setgp(begin);
 }
 
-int Streamable::syncOutputBuffer()
+int Streamable::syncOutputBuffer() throw(StreamException)
 {
 	int count = 0, ret = 0;
 	do {
 		ret = nvi_write(&pimpl->obuffer[count], pimpl->o - count);
-		if (ret < 0) return -1;
 		count += ret;
 	} while (ret > 0 && count < pimpl->o);
 	pimpl->o = 0;
@@ -150,7 +152,7 @@ int Streamable::syncOutputBuffer()
 	return 0;
 }
 
-int Streamable::syncInputBuffer()
+int Streamable::syncInputBuffer() throw(StreamException)
 {
 	long ret = 0;
 	long long read = 0;
@@ -194,7 +196,7 @@ StreamView Streamable::view(std::streamsize start, std::streamsize end, std::ios
 	}
 }
 
-void Streamable::write(const Streamable & other, std::ios_base::openmode buffer)
+void Streamable::write(const Streamable & other, std::ios_base::openmode buffer) throw(StreamException)
 {
 	if (buffer == std::ios::in) {
 		xsputn(other.icurrent_c(), other.iend_c() - other.icurrent_c());
@@ -215,7 +217,7 @@ void Streamable::remove(std::streamsize start, std::streamsize end, std::ios::op
 	}
 }
 
-std::streamsize Streamable::fetchUntil(const char* delim, std::streamsize packetSize, bool quitOnEmpty)
+std::streamsize Streamable::fetchUntil(const char* delim, std::streamsize packetSize, bool quitOnEmpty) throw(StreamException)
 {
 	int ret = 0;
 	auto i = gptr() - eback();
@@ -317,7 +319,7 @@ void Streamable::purge()
 #include "File.h"
 #include "SSLSocket.h"
 
-std::unique_ptr<Streamable> make_stream(const char* uri)
+std::unique_ptr<Streamable> make_stream(const char* uri) throw(StreamException)
 {
 	char scheme[50];
 	size_t schemeLen = strchr(uri, ':') - uri;
@@ -331,11 +333,13 @@ std::unique_ptr<Streamable> make_stream(const char* uri)
 	char * end = strchr(host, ':');
 	end = end == NULL ? end = strrchr(host, '/') : end;
 	if (end != NULL && end != strstr(host, "//") + 1) host[end - host] = '\0';
-	if (strcmp(scheme, "http") == 0) {
-		return std::make_unique<Socket>(Address(host + 2), FDMethod::TCP, usePort ? atoi(port) : 80);
+	if (strcmp(scheme, "http") == 0) {		
+		Connection con(Address(host + 2, usePort ? atoi(port) : 80), FDMethod::TCP);
+		return std::make_unique<Socket>(std::move(con));
 	}
 	else if (strcmp(scheme, "https") == 0) {
-		return std::make_unique<SSLSocket>(Address(host + 2), FDMethod::TCP, usePort ? atoi(port) : 443);
+		Connection con(Address(host + 2, usePort ? atoi(port) : 443), FDMethod::TCP);
+		return std::make_unique<SSLSocket>(std::move(con));
 	}
 	else if(strcmp(scheme, "file") == 0) {
 		union {
@@ -348,7 +352,7 @@ std::unique_ptr<Streamable> make_stream(const char* uri)
 	return nullptr;
 }
 
-std::ostream& operator<<(std::ostream& strm, const Streamable& other)
+std::ostream& operator<<(std::ostream& strm, const Streamable& other) throw(StreamException)
 {
 	strm.write(other.icurrent_c(), other.iend_c() - other.icurrent_c());
 	return strm;

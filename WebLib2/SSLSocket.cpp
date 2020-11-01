@@ -2,15 +2,18 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 #include <openssl/ssl3.h>
-bool SSLSocket::init = false;
+#include "openssl.h"
 int SSLSocket::nvi_write(const char * data, size_t len)
 {
-	return SSL_write(ssl, data, len);
+	int ret;
+	if ((ret = SSL_write(ssl, data, len)) <= 0) throw StreamException(SSL_get_error(ssl, ret), "Error sending ssl data");
+	return ret;
 }
 
 int SSLSocket::nvi_read(char * data, size_t amt) const
 {
-	return SSL_read(ssl, data, amt);
+	int ret;
+	if((ret = SSL_read(ssl, data, amt)) <= 0) throw StreamException(SSL_get_error(ssl, ret), "Error getting ssl data");
 }
 
 int SSLSocket::nvi_error(int errorCode) const
@@ -28,43 +31,30 @@ bool SSLSocket::nvi_available() const
 	return SSL_pending(ssl);
 }
 
-SSLSocket::SSLSocket(const SSL_METHOD * meth, socket_t sock) : sock(sock), method(meth), ssl(nullptr), ctx(nullptr)
+SSLSocket::SSLSocket(const SSL_METHOD * meth, socket_t sock) : method(meth), ssl(nullptr), ctx(nullptr)
 {
-	if (!init) {
-		init = true;
-		SSL_library_init();
-		SSL_load_error_strings();
-	}
 }
 
-SSLSocket::SSLSocket(Address addr, FDMethod meth, port_t p, const SSL_METHOD * smeth) : SSLSocket(smeth)
+SSLSocket::SSLSocket(Connection && c, const SSL_METHOD * smeth) : SSLSocket(smeth)
 {
-	int a = open(addr, meth, p);
+	InitSSL();
+	con = std::move(c);
+	open();
 }
 
 SSLSocket::~SSLSocket()
 {
 	if (ssl != nullptr) SSL_free(ssl);
 	if (ctx != nullptr) SSL_CTX_free(ctx);
-	if (sock != INVALID_SOCKET) closesocket(sock);
+	con.close();
 }
 
-int SSLSocket::open(Address addr, FDMethod meth, port_t p)
+void SSLSocket::open() throw(StreamException)
 {
-	data.sin_addr = addr;
-	data.sin_family = AF_INET;
-	data.sin_port = htons(p);
-	sock = socket(AF_INET, (int)meth, 0);
-	if (sock == INVALID_SOCKET) return -1;
-	int err = connect(sock, (sockaddr*)&data, sizeof(data));
-	if (err != 0) return err;
-	ctx = SSL_CTX_new(method);
-	if (!ctx) return -60;
-	ssl = SSL_new(ctx);
-	if (!ssl)
-		return -50;
-	SSL_set_fd(ssl, sock);
-	if (err = SSL_connect(ssl) <= 0)
-		return err;
-	return 0;
+	con.connectSocket();
+	if((ctx = SSL_CTX_new(method)) == NULL) throw StreamException(ERR_get_error(), "SSL could not create ctx");
+	if ((ssl = SSL_new(ctx)) == NULL) throw StreamException(ERR_get_error(), "SSL could not create ssl");
+	int err;
+	if((err = SSL_set_fd(ssl, con.sock)) <= 0) throw StreamException(SSL_get_error(ssl, err), "SSL could not set FD");
+	if ((err = SSL_connect(ssl)) <= 0) throw StreamException(SSL_get_error(ssl, err), "SSL could not connect");
 }
