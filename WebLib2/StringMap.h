@@ -43,6 +43,7 @@ public:
 	StringMap& operator=(const StringMap& other) = default;
 	StringMap& operator=(StringMap&& other) = default;
 	StringMap& put(K&& key, V&& val) {
+		checkLoad();
 		const hash_t h = hash(key.data(), key.size());
 		std::list<std::pair<K, V>>& li = map[h];
 		for(auto& p : li) {
@@ -56,6 +57,7 @@ public:
 		return *this;
 	}
 	StringMap& put(K&& key, V& val) {
+		checkLoad();
 		const hash_t h = hash(key.data(), key.size());
 		std::list<std::pair<K, V>>& li = map[h];
 		for (auto& p : li) {
@@ -69,6 +71,7 @@ public:
 		return *this;
 	}
 	StringMap& put(K& key, V&& val) {
+		checkLoad();
 		const hash_t h = hash(key.data(), key.size());
 		std::list<std::pair<K, V>>& li = map[h];
 		for (auto& p : li) {
@@ -82,6 +85,7 @@ public:
 		return *this;
 	}
 	StringMap& put(K& key, V& val) {
+		checkLoad();
 		const hash_t h = hash(key.data(), key.size());
 		std::list<std::pair<K, V>>& li = map[h];
 		for (auto& p : li) {
@@ -113,6 +117,7 @@ public:
 		std::list<std::pair<K, V>>& li = map[hash(key.data(), key.size())];
 		std::pair<K, V>* p = _getHelper(li, key.data(), key.size());
 		if (p != nullptr) return *p;
+		checkLoad();
 		li.emplace_back(key, V());
 		++elements;
 		return li.back();
@@ -121,6 +126,7 @@ public:
 		std::list<std::pair<K, V>>& li = map[hash(key.data(), key.size())];
 		std::pair<K, V>* p = _getHelper(li, key.data(), key.size());
 		if (p != nullptr) return *p;
+		checkLoad();
 		li.emplace_back(key, V());
 		++elements;
 		return li.back();
@@ -209,11 +215,23 @@ public:
 	inline void setCaseSensitive(bool c) {
 		useCase = c;
 	}
-private:
-	inline void checkLoad() {
-		if (elements / (double)map.size() > 1)
-			elements.resize(elements.size() * 2);
+	/** 
+	 * Checks the load on the hashmap and resizes it if necessary
+	 * @param loadFac if elements / map.size() > loadFac, resizes the map
+	 */
+	void checkLoad(double loadFac = 1) {
+		if (elements / (double)map.size() > loadFac) {
+			std::vector<std::list<std::pair<K, V>>> m1 = map;
+			map = std::vector<std::list<std::pair<K, V>>>(map.size() * 2);
+			for (auto& li : m1) {
+				for(auto& p : li) {
+					const hash_t h = hash(p.first.data(), p.first.size());
+					map[h].push_back(p);
+				}
+			}
+		}
 	}
+private:
 	inline hash_t hash(const char* s, size_t len = ~0) const {
 		hash_t h = useCase ? util::HASH(s, len) : util::HASH_NO_CASE(s, len);
 		return util::knuth(h) % map.size();
