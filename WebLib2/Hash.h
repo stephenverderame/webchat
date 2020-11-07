@@ -1,7 +1,7 @@
 #pragma once
 using hash_t = unsigned long;
 namespace util{
-	static constexpr hash_t BASE = 127, MOD = (1 << 31) - 1;
+	static constexpr hash_t BASE = 127, MOD = (1UL << 30UL) - 35UL;
 	static constexpr long strlen_c(const char* str)
 	{
 		int i = 0;
@@ -29,6 +29,6 @@ namespace util{
 		return r;
 	}
 	static constexpr hash_t knuth(hash_t h) {
-		return (h * 2654435769UL) >> 16;
+		return (h * 2654435769ULL) >> 16;
 	}
 }

@@ -54,9 +54,6 @@
     <ClCompile Include="StreamException.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RAIIContext.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Socket.h">

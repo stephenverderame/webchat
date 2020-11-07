@@ -1,6 +1,7 @@
 #pragma once
 #include "Client.h"
 #include "StreamView.h"
+#include "StringMap.h"
 namespace HTTP {
 	namespace Resp {
 		constexpr const char* OK = "200 OK";
@@ -31,32 +32,12 @@ namespace HTTP {
 	}
 }
 
-class HttpHeaders {
-private:
-	struct impl;
-	std::unique_ptr<impl> pimpl;
-public:
-	//returns a streamview with a zero length on failure
-	StreamView& operator[](const char * key);
-	StreamView& operator[](hash_t hashKey);
-
-	void put(StreamView&& key, StreamView&& val);
-	void put(const StreamView& key, const StreamView& val);
-	void put(StreamView&& key, const StreamView& val);
-	void put(const StreamView& key, StreamView&& val);
-	HttpHeaders();
-	HttpHeaders(HttpHeaders && h);
-	HttpHeaders& operator=(HttpHeaders && h);
-	~HttpHeaders();
-	bool find(const char * key);
-	bool find(hash_t hashKey);
-	void for_each(std::function<void(StreamView &, StreamView &)> pred);
-};
 struct HttpResponse {
 	int responseCode = 0;
 	StreamView responseMessage;
-	HttpHeaders headers;
+	StringMap<StreamView, StreamView> headers;
 	StreamView content;
+	HttpResponse();
 };
 enum class AutoHttpHeaders {
 	AcceptedEncodings
@@ -67,14 +48,43 @@ private:
 	struct impl;
 	std::unique_ptr<impl> pimpl;
 public:
+	/**
+	 * Buffers in the path of the resource to fetch
+	 * @param path 
+	 * @return this for chaining
+	 */
 	HttpClient & path(const char * path);
+	/**
+	 * Buffers a header 
+	 * @param header key
+	 * @param value value
+	 * @return this for chaning
+	 */
 	HttpClient & put(const char * header, const char * value);
+	/**
+	 * Buffers in an automatic header
+	 * @param header 
+	 * @return this for chaining
+	 */
 	HttpClient & put(AutoHttpHeaders header);
+	/**
+	 * Buffers in the HTTP method (ie. GET or POST)
+	 * @param method the method
+	 * @return this for chaining
+	 */
 	HttpClient & method(const char * method);
+	/**
+	 * Buffers in an HTTP response code
+	 * @param response the response code
+	 * @return this -> for chaining
+	 */
 	HttpClient & response(const char * response);
 	Streamable & getStream();
 	//Buffers headers into input stream. Must be called before buffering in content
 	void bufferHeaders();
+	/** 
+	 * Sends any unbuffered data
+	 */
 	void send();
 	/*
 	Syncs input and output buffers (writes all, reads all)
@@ -83,6 +93,10 @@ public:
 	Stream is left in a state where it points to the content
 	*/
 	HttpResponse getResponse();
+	/**
+	 * Constructs an HTTP client over the given stream
+	 * @param stream 
+	 */
 	HttpClient(std::unique_ptr<Streamable> && stream);
 	HttpClient(HttpClient && client);
 	HttpClient& operator=(HttpClient && c);

@@ -68,6 +68,7 @@ HttpResponse HttpClient::getResponse()
 	stream->syncOutputBuffer();
 	auto headerEndIndex = stream->fetchUntil("\r\n\r\n", 500);
 	HttpResponse resp;
+	resp.headers.setCaseSensitive(false);
 	Streamable & s = *stream.get();
 	StreamView buffer = stream->getSharedView();
 	StreamView line;
@@ -83,19 +84,20 @@ HttpResponse HttpClient::getResponse()
 				if (pos != StreamView::INVALID) {
 					resp.headers.put(line.sub(0, pos), line.sub(pos + 2));
 					StreamView sv = line.sub(0, pos);
-					std::cout << sv << ": " << line.sub(pos + 2) << "\n";
-					if (sv == "content-encoding") {
+//					std::cout << sv << ": " << line.sub(pos + 2) << "\n";
+/*					if (sv == "content-encoding") {
+						if (!resp.headers.find(sv) || !resp.headers.find("Content-Encoding")) std::cout << "UHAHDHDHD" << "\n";
 						std::cout << sv.hashCaseInsensitive() << " : " << util::HASH_NO_CASE("Content-Encoding") << std::endl;
-					}
+					}*/
 				}
 				else {					
 					break;
 				}
 			}
 			stream->seekg(headerEndIndex + 4);
-			StreamView & transferEncoding = resp.headers[util::HASH_NO_CASE("Transfer-Encoding")];
-			StreamView & contentEncoding = resp.headers[util::HASH_NO_CASE("Content-Encoding")];
-			if (transferEncoding.size() > 0 && transferEncoding == "chunked") {
+			bool transferEncoding = resp.headers.find("Transfer-Encoding");
+			bool contentEncoding = resp.headers.find("Content-Encoding");
+			if (transferEncoding && resp.headers["Transfer-Encoding"].second == "chunked") {
 				/*
 				* Chunk format:
 				*   size in hex\r\n
@@ -122,18 +124,17 @@ HttpResponse HttpClient::getResponse()
 					stream->remove(now - std::streamoff(2), now); //remove ending \r\n
 				} while (size > 0);
 				stream->seekg(headerEndIndex + 4);
-				printf("%d\n", headerEndIndex);
+//				printf("%d\n", headerEndIndex);
 			}
-			else if (resp.headers.find(util::HASH_NO_CASE("Content-Length"))) {
+			else if (resp.headers.find("Content-Length")) {
 				std::streampos initial = s.tellg();
-				std::streampos len = resp.headers[util::HASH_NO_CASE("Content-Length")].parse();
+				std::streampos len = resp.headers["Content-Length"].second.parse();
 				while ((std::streamoff)initial + len >= s.getBufferSize()) {
 					if (s.syncInputBuffer() != 0) break;
 				}
 				stream->seekg(headerEndIndex + 4);
 			}
-			std::cout << contentEncoding << "\n";
-			if (contentEncoding.size() > 0 && contentEncoding == "gzip") {
+			if (contentEncoding && resp.headers["Content-Encoding"].second == "gzip") {
 //				File test("test.gz", FileMode::write + FileMode::binary);
 //				test << stream;
 				GzipCoder * gzip = new GzipCoder(stream.get());
@@ -163,68 +164,8 @@ HttpClient & HttpClient::operator=(HttpClient && c)
 
 HttpClient::~HttpClient() = default;
 
-struct HttpHeaders::impl {
-	std::unordered_map<hash_t, std::pair<StreamView, StreamView>> data;
-	StreamView emptyView;
-};
-StreamView& HttpHeaders::operator[](const char * key)
-{
-	return operator[](util::HASH_NO_CASE(key));
-}
-StreamView& HttpHeaders::operator[](hash_t hashKey)
-{
-	auto it = pimpl->data.find(hashKey);
-	if (it != pimpl->data.end())
-		return it->second.second;
-	return pimpl->emptyView;
-}
-void HttpHeaders::put(StreamView && key, StreamView && val)
-{
-	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
-}
-void HttpHeaders::put(const StreamView& key, const StreamView& val)
-{
 
-	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
-}
-void HttpHeaders::put(StreamView && key, const StreamView & val)
+HttpResponse::HttpResponse()
 {
-	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
-}
-void HttpHeaders::put(const StreamView & key, StreamView && val)
-{
-	pimpl->data[key.hashCaseInsensitive()] = std::make_pair(key, val);
-}
-HttpHeaders::HttpHeaders() : pimpl(std::make_unique<impl>())
-{
-}
-
-HttpHeaders::HttpHeaders(HttpHeaders && h) : pimpl(std::move(h.pimpl))
-{
-	
-}
-
-HttpHeaders & HttpHeaders::operator=(HttpHeaders && h)
-{
-	pimpl.swap(h.pimpl);
-	return *this;
-}
-
-HttpHeaders::~HttpHeaders() = default;
-
-bool HttpHeaders::find(const char * key)
-{
-	return (*this)[key].size() > 0;
-}
-
-bool HttpHeaders::find(hash_t hashKey)
-{
-	return (*this)[hashKey].size() > 0;
-}
-
-void HttpHeaders::for_each(std::function<void(StreamView &, StreamView &)> pred)
-{
-	for (auto header : pimpl->data) {
-		pred(header.second.first, header.second.second);
-	}
+	headers.setCaseSensitive(false);
 }

@@ -16,6 +16,7 @@ public:
 	static constexpr std::streamsize INVALID = -1;
 	//start inclusive, end exclusive
 	StreamView(const char * parent, std::streamsize start, std::streamsize end);
+	StreamView(const char* parent, std::streamsize len);
 
 	/**
 	* Creates a StreamView with shared buffer ownership of parent from [start, end) (absolute)
@@ -98,11 +99,20 @@ public:
 	*/
 	void adjust(std::streamsize start, std::streamsize end);
 
-	const char* data();
+	const char* data() const;
 	std::streamsize size() const;
 protected:
 	//Factors start into pointer
 	const char * _gptr() const;
+public:
+	/**
+	 * Constructs a StreamView by copying the data
+	 * Use to ensure lifetime of the StreamView
+	 * @param s 
+	 * @return 
+	 */
+	static StreamView make(std::string&& s);
+	static StreamView make(std::vector<char>&& b);
 
 };
 

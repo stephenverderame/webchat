@@ -69,6 +69,9 @@ std::streamsize find_mt_helper_char(char needle, const char * haystack, size_t s
 StreamView::StreamView(const char * parent, std::streamsize start, std::streamsize end) : parent_p(parent), start(start), _size(end - start)
 {
 }
+StreamView::StreamView(const char* parent, std::streamsize len) : parent_p(parent), start(0), _size(len)
+{
+}
 StreamView::StreamView(const std::shared_ptr<std::vector<char>>& parent, std::streamsize start, std::streamsize end) : parent_p(nullptr), parent(parent), start(start), _size(end - start), ptr(start)
 {
 }
@@ -79,13 +82,31 @@ StreamView::StreamView() : parent_p(nullptr), parent(nullptr), start(0), _size(0
 StreamView::StreamView(StreamView&& other) : parent_p(other.parent_p), parent(other.parent), start(other.start), _size(other._size), ptr(other.ptr) {}
 StreamView::StreamView(const StreamView & other) : parent_p(other.parent_p), parent(other.parent), start(other.start), _size(other._size), ptr(other.ptr) {}
 StreamView & StreamView::operator=(const StreamView & other) = default;
-StreamView & StreamView::operator=(StreamView && other) = default;
+StreamView& StreamView::operator=(StreamView&& other) = default;
 StreamView::~StreamView() = default;
 const char * StreamView::_gptr() const
 {
 	if (parent_p != nullptr) return parent_p + start;
 	else if (parent == nullptr) throw std::exception("StreamView does not reference any data");
 	else return &parent->at(start);
+}
+StreamView StreamView::make(std::string&& s)
+{
+	StreamView sv;
+	sv.parent = std::make_shared<std::vector<char>>();
+	sv._size = s.size();
+	sv.parent->insert(sv.parent->end(), s.begin(), s.end());
+	sv.ptr = 0;
+	return sv;
+}
+StreamView StreamView::make(std::vector<char>&& b)
+{
+	StreamView sv;
+	sv._size = b.size();
+	sv.ptr = 0;
+	sv.start = 0;
+	sv.parent = std::make_shared<std::vector<char>>(b);
+	return sv;
 }
 std::streamsize StreamView::find(char k, std::streamsize start) const
 {
@@ -273,9 +294,10 @@ bool StreamView::operator==(const char * other) const
 	return false;
 }
 
-const char* StreamView::data()
+const char* StreamView::data() const
 {
-	return nullptr;
+	if (parent_p != nullptr) return parent_p + start;
+	return &parent->at(start);
 }
 
 std::streamsize StreamView::getSize() const
