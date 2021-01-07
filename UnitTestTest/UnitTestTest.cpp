@@ -62,7 +62,7 @@ namespace UnitTestTest
 			}
 			Assert::AreEqual(li.size(), test.size() - removed.size());
 			testMap[StreamView("notawordmanidk", 14)].second = 5U;
-			Assert::IsTrue(testMap[StreamView("notawordmanidk", 14)].second == 5);
+			Assert::IsTrue(testMap[StreamView("notawordmanidk", 14)].second == 5U);
 
 			i = 0;
 			for(auto& p : testMap) {

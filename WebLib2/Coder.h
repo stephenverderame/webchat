@@ -1,7 +1,7 @@
 #pragma once
 #include "Streamable.h"
-//Coders work sort of opposite to other streams
-//Takes what you write to it (output buffer), encodes/decodes it and stores it into the readable memory (input buffer)
+///Coders work sort of opposite to other streams
+///Takes what you write to it (output buffer), encodes/decodes it and stores it into the readable memory (input buffer)
 class Coder : public Streamable
 {
 protected:

@@ -9,8 +9,8 @@ private:
 	SSL_CTX * ctx;
 	const SSL_METHOD * method;
 protected:
-	int nvi_write(const char * data, size_t len) throw(StreamException) override;
-	int nvi_read(char * data, size_t amt) const throw(StreamException) override;
+	int nvi_write(const char * data, size_t len) override;
+	int nvi_read(char * data, size_t amt) const override;
 	int nvi_error(int errorCode) const override;
 	int minAvailableBytes() const override;
 	bool nvi_available() const override;
@@ -20,6 +20,6 @@ public:
 	SSLSocket(Connection&& c, SSL* ssl) : con(std::move(c)), ssl(ssl), ctx(nullptr), method(nullptr) {};
 	Connection& getConnection() { return con; }
 	~SSLSocket();
-	void open() throw(StreamException) override;
+	void open() override;
 };
 

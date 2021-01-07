@@ -28,7 +28,7 @@ class StringMap
 public:
 private:
 	std::vector<std::list<std::pair<K, V>>> map;
-	bool useCase; //True if map is case-sensitive
+	bool useCase; ///< True if map is case-sensitive
 	size_t elements;
 public:
 	StringMap(long initSize = 100, bool needCase = true){
@@ -56,113 +56,38 @@ public:
 		++elements;
 		return *this;
 	}
-	StringMap& put(K&& key, V& val) {
-		checkLoad();
-		const hash_t h = hash(key.data(), key.size());
-		std::list<std::pair<K, V>>& li = map[h];
-		for (auto& p : li) {
-			if (p.first == key) {
-				p.second = val;
-				return *this;
-			}
-		}
-		li.push_back(std::make_pair(key, val));
-		++elements;
-		return *this;
-	}
-	StringMap& put(K& key, V&& val) {
-		checkLoad();
-		const hash_t h = hash(key.data(), key.size());
-		std::list<std::pair<K, V>>& li = map[h];
-		for (auto& p : li) {
-			if (p.first == key) {
-				p.second = val;
-				return *this;
-			}
-		}
-		li.push_back(std::make_pair(key, val));
-		++elements;
-		return *this;
-	}
-	StringMap& put(K& key, V& val) {
-		checkLoad();
-		const hash_t h = hash(key.data(), key.size());
-		std::list<std::pair<K, V>>& li = map[h];
-		for (auto& p : li) {
-			if (p.first == key) {
-				p.second = val;
-				return *this;
-			}
-		}
-		li.push_back(std::make_pair(key, val));
-		++elements;
-		return *this;
-	}
 	/**
 	 * Gets the element with the given key
 	 * If not found, a newly created pair at the corresponding index
 	 * @param key key
 	 * @return an existing or new pair with the given key
 	 */
+	///@{
 	inline std::pair<K, V>& operator[](const char * key) {
 		return get(key, strlen(key));
 	}
-	inline std::pair<K, V>& operator[](const std::string& key) {
+	template<typename T>
+	std::enable_if_t<is_stringMappable<std::remove_reference_t<T>>::value, std::pair<K, V>&>
+	operator[](T&& key) {
 		return get(key.data(), key.size());
 	}
-	inline std::pair<K, V>& operator[](const std::string&& key) {
-		return get(key.data(), key.size());
-	}
-	inline std::pair<K, V>& operator[](const StreamView& key) {
-		std::list<std::pair<K, V>>& li = map[hash(key.data(), key.size())];
-		std::pair<K, V>* p = _getHelper(li, key.data(), key.size());
-		if (p != nullptr) return *p;
-		checkLoad();
-		li.emplace_back(key, V());
-		++elements;
-		return li.back();
-	}
-	inline std::pair<K, V>& operator[](const StreamView&& key) {
-		std::list<std::pair<K, V>>& li = map[hash(key.data(), key.size())];
-		std::pair<K, V>* p = _getHelper(li, key.data(), key.size());
-		if (p != nullptr) return *p;
-		checkLoad();
-		li.emplace_back(key, V());
-		++elements;
-		return li.back();
-	}
-	inline std::pair<K, V>& operator[](const std::string_view&& key) {
-		return get(key.data(), key.size());
-	}
-	inline std::pair<K, V>& operator[](const std::string_view& key) {
-		return get(key.data(), key.size());
-	}
+	///@}
 	/**
 	 * Determines if the key is in the map. If so gets its uid, otherwise false is returned
 	 * @param key the key to look for
 	 * @return true if the param was found
 	 */
+	///@{
 	inline bool find(const char * key) const {
 		return _find(key, strlen(key));
 	}
-	inline bool find(const std::string& key) const {
+	template<typename T>
+	std::enable_if_t<is_stringMappable<std::remove_reference_t<T>>::value, bool>
+	find(T&& key) const {
 		return _find(key.data(), key.size());
 	}
-	inline bool find(const std::string&& key) const {
-		return _find(key.data(), key.size());
-	}
-	inline bool find(const std::string_view& key) const {
-		return _find(key.data(), key.size());
-	}
-	inline bool find(const std::string_view&& key) const {
-		return _find(key.data(), key.size());
-	}
-	inline bool find(const StreamView& key) const {
-		return _find(key.data(), key.size());
-	}
-	inline bool find(const StreamView&& key) const {
-		return _find(key.data(), key.size());
-	}
+	///@}
+
 	inline size_t size() const {
 		return elements;
 	}
@@ -180,27 +105,17 @@ public:
 	* @param key the key to look for
 	* @return true if the pair is removed, false otherwise
 	*/
+	///@{
 	inline bool remove(const char* key) {
 		return _remove(key, strlen(key));
 	}
-	inline bool remove(const std::string& key) {
+	template<typename T>
+	std::enable_if_t<is_stringMappable<std::remove_reference_t<T>>::value, bool>
+	remove(T&& key) {
 		return _remove(key.data(), key.size());
 	}
-	inline bool remove(const std::string&& key) {
-		return _remove(key.data(), key.size());
-	}
-	inline bool remove(const std::string_view& key) {
-		return _remove(key.data(), key.size());
-	}
-	inline bool remove(const std::string_view&& key) {
-		return _remove(key.data(), key.size());
-	}
-	inline bool remove(const StreamView& key) {
-		return _remove(key.data(), key.size());
-	}
-	inline bool remove(const StreamView&& key) {
-		return _remove(key.data(), key.size());
-	}
+	///@}
+
 	Iterator begin() {
 		if(elements > 0) {
 			for(int i = 0; i < map.size(); ++i) {
@@ -249,8 +164,9 @@ private:
 		std::list<std::pair<K, V>>& li = map[hash(s, len)];
 		std::pair<K, V> *p = _getHelper(li, s, len);
 		if (p != nullptr) return *p;
-		li.emplace_back(K(), V());
+		li.emplace_back(K(s, len), V());
 		++elements;
+		checkLoad();
 		return li.back();
 	}
 	bool _find(const char * s, size_t len = ~0) const {
@@ -324,17 +240,15 @@ template<typename K, typename V>
 class StringMap<K, V>::Iterator {
 	friend class StringMap<K, V>;
 private:
-	int bucket;
-	//bucket is a number [0, map.size()) or ~0 if this iterator is invalid
-	typename std::list<std::pair<K, V>>::iterator it;
-	//iterator is always valid if bucket != ~0
+	int bucket; ///< bucket is a number [0, map.size()) or ~0 if this iterator is invalid
+	typename std::list<std::pair<K, V>>::iterator it; /// < iterator is always valid if bucket != ~0
 	std::vector<std::list<std::pair<K, V>>>* map;
 private:
 	/**
 	 * Creates an invalid iterator
 	 * @param bucket 
 	 */
-	Iterator() : bucket(~0) {}
+	Iterator() : bucket(~0), map(nullptr) {}
 	/**
 	 * Creates an iterator from the given bucket and element
 	 * @param bucket bucket of the map
@@ -347,10 +261,14 @@ public:
 		if (bucket != ~0) return *it;
 		throw std::exception("No elements");
 	}
-	bool operator==(Iterator& it) const {
+	const std::pair<K, V>& operator*() const {
+		if(bucket != ~0) return *it;
+		throw std::exception("No elements");
+	}
+	bool operator==(const Iterator& it) const {
 		return (bucket == it.bucket && bucket == ~0) || (bucket == it.bucket && this->it == it.it);
 	}
-	bool operator!=(Iterator& it) const {
+	bool operator!=(const Iterator& it) const {
 		return !(*this == it);
 	}
 	Iterator operator++() {
@@ -365,12 +283,7 @@ public:
 	}
 	Iterator operator++(int) {
 		Iterator ret = *this;
-		if (++it == map->at(bucket).end()) {
-			while (++bucket < map->size()) {
-				if ((it = map->at(bucket).begin()) != map->at(bucket).end());
-			}
-			bucket = ~0;
-		}
+		++(*this);
 		return ret;
 	}
 };

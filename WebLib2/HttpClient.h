@@ -42,55 +42,91 @@ struct HttpResponse {
 enum class AutoHttpHeaders {
 	AcceptedEncodings
 };
-class HttpClient : public Client
-{
-private:
+class HttpHeaderBuilder {
+protected:
 	struct impl;
 	std::unique_ptr<impl> pimpl;
 public:
 	/**
-	 * Buffers in the path of the resource to fetch
-	 * @param path 
-	 * @return this for chaining
-	 */
-	HttpClient & path(const char * path);
-	/**
-	 * Buffers a header 
+	 * Buffers a header
+	 * Strings must live until build() is called
 	 * @param header key
 	 * @param value value
 	 * @return this for chaning
 	 */
-	HttpClient & put(const char * header, const char * value);
+	HttpHeaderBuilder& put(const char* header, const char* value);
 	/**
 	 * Buffers in an automatic header
-	 * @param header 
+	 * @param header
 	 * @return this for chaining
 	 */
-	HttpClient & put(AutoHttpHeaders header);
+	HttpHeaderBuilder& put(AutoHttpHeaders header);
+
+
+	virtual std::stringstream build() const = 0;
+
+	virtual ~HttpHeaderBuilder();
+	HttpHeaderBuilder();
+};
+class HttpRequestBuilder : public HttpHeaderBuilder {
+private:
+	const char* requestMethod, * requestPath;
+public:
+	/**
+	 * Buffers in the path of the resource to fetch
+	 * String must live until build() is called
+	 * @param path
+	 * @return this for chaining
+	 */
+	HttpRequestBuilder& path(const char* path);
+
 	/**
 	 * Buffers in the HTTP method (ie. GET or POST)
-	 * @param method the method
+	 * @param method the method, must live until build() is called
 	 * @return this for chaining
 	 */
-	HttpClient & method(const char * method);
+	HttpRequestBuilder& method(const char* method);
+
+	std::stringstream build() const override;
+
+	~HttpRequestBuilder();
+	HttpRequestBuilder();
+};
+
+class HttpResponseBuilder : public HttpHeaderBuilder {
+private:
+	const char* respCode;
+public:
 	/**
 	 * Buffers in an HTTP response code
+	 * String must live until build()
 	 * @param response the response code
 	 * @return this -> for chaining
 	 */
-	HttpClient & response(const char * response);
+	HttpResponseBuilder& response(const char* response);
+
+	std::stringstream build() const override;
+
+	~HttpResponseBuilder();
+	HttpResponseBuilder();
+};
+class HttpClient : public Client
+{
+private:
+	std::unique_ptr<Streamable> stream;
+public:
 	Streamable & getStream();
 	//Buffers headers into input stream. Must be called before buffering in content
-	void bufferHeaders();
+	void bufferHeaders(const HttpHeaderBuilder& builder);
 	/** 
 	 * Sends any unbuffered data
 	 */
 	void send();
-	/*
-	Syncs input and output buffers (writes all, reads all)
-	Then reads through the stream until it reaches an empty line (end of headers)
-	Copies header data and returns it in the HttpResponse
-	Stream is left in a state where it points to the content
+	/**
+	* Syncs input and output buffers (writes all, reads all)
+	* Then reads through the stream until it reaches an empty line (end of headers)
+	* Copies header data and returns it in the HttpResponse
+	* Stream is left in a state where it points to the content
 	*/
 	HttpResponse getResponse();
 	/**

@@ -49,7 +49,7 @@ SSLSocket::~SSLSocket()
 	con.close();
 }
 
-void SSLSocket::open() throw(StreamException)
+void SSLSocket::open()
 {
 	con.connectSocket();
 	if((ctx = SSL_CTX_new(method)) == NULL) throw StreamException(ERR_get_error(), "SSL could not create ctx");

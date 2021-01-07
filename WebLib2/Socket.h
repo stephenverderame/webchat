@@ -15,6 +15,6 @@ protected:
 public:
 	Connection& getConnection() { return con; }
 	Socket(Connection && s);
-	void open() throw(StreamException) override;
+	void open() override;
 };
 

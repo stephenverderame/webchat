@@ -27,8 +27,9 @@ int main() {
 	else std::cout << "Wrong!\n";
 	std::cout << j;
 	HttpClient client(make_stream("https://stackoverflow.com"));
-	client.method("GET").put("Host", "stackoverflow.com").put("Connection", "close").put("Accept", "text/html").put(AutoHttpHeaders::AcceptedEncodings);
-	client.bufferHeaders();
+	HttpRequestBuilder headers;
+	headers.method("GET").put("Host", "stackoverflow.com").put("Connection", "close").put("Accept", "text/html").put(AutoHttpHeaders::AcceptedEncodings);
+	client.bufferHeaders(headers);
 	HttpResponse resp = client.getResponse();
 	printf("%d ", resp.responseCode);
 	std::cout << resp.responseMessage << "\n";
@@ -48,8 +49,9 @@ int main() {
 	while (true) {
 		try {
 			HttpClient client2(sl.accept());
-			client2.response(HTTP::Resp::OK).put("Content-Type", "text/html").put("Content-Length", "13");
-			client2.bufferHeaders();
+			HttpResponseBuilder headers;
+			headers.response(HTTP::Resp::OK).put("Content-Type", "text/html").put("Content-Length", "13");
+			client2.bufferHeaders(headers);
 			client2.getStream() << "<h1>Test</h1>";
 			client2.send();
 		} catch(StreamException & s){

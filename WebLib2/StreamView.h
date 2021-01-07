@@ -3,10 +3,10 @@
 #include "Hash.h"
 #include <functional>
 #include <vector>
-//class to manipulate data without copying
+///class to manipulate data without copying
 class StreamView
 {
-	//Offsets used by internal functions are relative from the start of this StreamView
+	///Offsets used by internal functions are relative from the start of this StreamView
 private:
 	const char * parent_p;
 	std::shared_ptr<std::vector<char>> parent;
@@ -14,7 +14,7 @@ private:
 	mutable std::streamsize ptr;
 public:
 	static constexpr std::streamsize INVALID = -1;
-	//start inclusive, end exclusive
+	///start inclusive, end exclusive
 	StreamView(const char * parent, std::streamsize start, std::streamsize end);
 	StreamView(const char* parent, std::streamsize len);
 
@@ -22,8 +22,11 @@ public:
 	* Creates a StreamView with shared buffer ownership of parent from [start, end) (absolute)
 	* Use if you want the StreamView to persist past the lifetime of the buffer's owner
 	*/
+	///@{
 	StreamView(const std::shared_ptr<std::vector<char>> & parent, std::streamsize start, std::streamsize end);
 	StreamView(const std::shared_ptr<std::vector<char>>&& parent, std::streamsize start, std::streamsize end);
+	///@}
+	
 	StreamView();
 	StreamView(StreamView&& other);
 	StreamView(const StreamView& other);
@@ -34,12 +37,14 @@ public:
 	std::streamsize find(char k, std::streamsize start = 0) const;
 	std::streamsize find(const char * k, std::streamsize start = 0, size_t len = -1) const;
 
-	//find multithreaded
+	///find multithreaded
 	std::streamsize find_mt(const char * k, std::streamsize start = 0, size_t len = -1) const;
 	
-	//start relative inclusive, end relative exclusive
+	///start relative inclusive, end relative exclusive
+	///@{
 	StreamView sub(std::streamsize start, std::streamsize end = -1) const;
 	std::string sub_cpy(std::streamsize start, std::streamsize end = -1) const;
+	///@}
 
 	void put(std::ostream & stream) const;
 	std::string copy() const;
@@ -61,11 +66,13 @@ public:
 
 	char operator[](std::streamsize index) const;
 
-	//operations of the internal pointer
+	///operations of the internal pointer
+	/// @{
 	char get() const;
 	std::streamsize tell() const;
 	void seek(std::streamsize offset, std::ios::seekdir reference = std::ios::beg) const;
 	void advance(std::streamsize offset = 1) const;
+	///@}
 	
 	
 	hash_t hash() const;
@@ -102,7 +109,7 @@ public:
 	const char* data() const;
 	std::streamsize size() const;
 protected:
-	//Factors start into pointer
+	///Factors start into pointer
 	const char * _gptr() const;
 public:
 	/**

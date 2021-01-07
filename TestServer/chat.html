@@ -360,7 +360,7 @@
             if (localStorage.profilePic) {
                 return localStorage.profilePic;
             }
-            return "http://profilepics.xyz/wp-content/uploads/2018/01/Life-profile-pics-latest.png";
+            return "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
         }
         function checkPicture() {
             if (open && localStorage.profilePic) {
@@ -388,7 +388,7 @@
                 <text style="fill:white;" font-size="20" font-family="Verdana" x="40%" y="55%" onmousemove="document.getElementById('button').style.fill = 'deepskyblue';" onmouseout="document.getElementById('button').style.fill = 'dodgerblue';" onmousedown="sidebarClose();">CLOSE &times;</text>
             </svg>
             <br />
-            <img id="sidebarProfile" class="pic" style="margin:initial;" src="http://profilepics.xyz/wp-content/uploads/2018/01/Life-profile-pics-latest.png" onmouseover="document.getElementById('sidebarProfile').style.border = '2px solid dodgerblue';" onmouseout="document.getElementById('sidebarProfile').style.border = '2px solid grey';"/>
+            <img id="sidebarProfile" class="pic" style="margin:initial;" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" onmouseover="document.getElementById('sidebarProfile').style.border = '2px solid dodgerblue';" onmouseout="document.getElementById('sidebarProfile').style.border = '2px solid grey';"/>
             <script>
                 document.getElementById("sidebarProfile").onclick = function (event) {
                     var event = new MouseEvent('click', {
@@ -450,7 +450,7 @@
             </svg>
         </div>
     </div>
-    <img id="profile" class="pic" src="http://profilepics.xyz/wp-content/uploads/2018/01/Life-profile-pics-latest.png" onclick="sidebarOpen();"/>
+    <img id="profile" class="pic" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" onclick="sidebarOpen();"/>
     <script>
         document.getElementById("profile").src = getPicture();
         document.getElementById("sidebarProfile").src = getPicture();

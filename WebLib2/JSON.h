@@ -33,16 +33,20 @@ public:
 	* @see typeof()
 	* @return 0 length StreamView on failure, else the content of the field
 	*/
+	///@{
 	StreamView get(const char* name) const;
 	StreamView get(StreamView& name) const;
 	StreamView get(StreamView&& name) const;
-	//return nullptr on failure
+	///@}
+	///return nullptr on failure
+	///@{
 	JSONObject* getObj(const char* name) const;
 	JSONObject* getObj(StreamView& name) const;
 	JSONObject* getObj(StreamView&& name) const;
 	JSONArray* getArray(const char* name) const;
 	JSONArray* getArray(StreamView& name) const;
 	JSONArray* getArray(StreamView&& name) const;
+	///@}
 
 	JSONType typeof(const char* name) const;
 	JSONType typeof(StreamView& name) const;
@@ -56,17 +60,22 @@ public:
 
 
 
-	//name and data must outlive the JSONObject
-	//if name already exists, value is overriden
+	///name and data must outlive the JSONObject
+	///if name already exists, value is overriden
+	///@{
 	void put(const char* name, const char* data);
 	void put(const char* name, const StreamView& data);
 	void put(const StreamView& name, const StreamView& data);
 	void put(const char* name, StreamView&& data);
 	void put(const char* name, const JSONObject& obj);
 	void put(const char* name, const JSONArray& arr);
+	///@}
 
+	/// Assigns a new stream view for this JSONObject
+	/// @{
 	inline void assign(StreamView&& txt);
 	inline void assign(const StreamView& txt);
+	///@}
 
 private:
 	void init();
@@ -91,8 +100,10 @@ public:
 	/**
 	* If an element is known to be an array or an object, returns the given reference instead of having to reconstruct one each time from its text representation
 	*/
+	///@{
 	JSONArray* getArray(int index);
 	JSONObject* getObj(int index);
+	/// @}
 
 	StreamView get(int index);
 

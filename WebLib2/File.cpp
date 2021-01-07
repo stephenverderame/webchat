@@ -1,11 +1,10 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "File.h"
 
-constexpr inline bool isLittleEndian()
-{
-	long x = 1;
-	return (char*)&x != 0;
-}
+const FileMode FileMode::read("r"), FileMode::write("w"), FileMode::append("a"), 
+FileMode::openReadWrite("r+"), FileMode::readWrite("w+"), FileMode::readAppend("a+"), FileMode::read_b("rb"), 
+FileMode::write_b("wb"), FileMode::append_b("ab"), FileMode::openReadWrite_b("rb+"), 
+FileMode::readWrite_b("wb+"), FileMode::readAppend_b("ab+");
 
 int File::nvi_write(const char * data, size_t len)
 {
@@ -45,22 +44,9 @@ bool File::nvi_available() const
 	return !success;
 }
 
-const char * File::fMode(FileMode& m) const
-{
-	if (isLittleEndian)
-		m = (FileMode)(0 >> 8 | (long)m);
-	else
-		m = (FileMode)((long)m << 8);
-	const char * b = (char*)&m;
-	for (int i = 0; i < 3; ++i)
-		if (b[i] != 0) return &b[i];
-	return &b[3];
-
-}
-
 File::File(const char * file, FileMode mode)
 {
-	if((f = fopen(file, fMode(mode))) == NULL) throw StreamException(-1, "Cannot open file");
+	if((f = fopen(file, mode.getMode())) == NULL) throw StreamException(-1, "Cannot open file");
 }
 
 File::~File()
@@ -71,12 +57,21 @@ File::~File()
 	catch (StreamException&) {};
 	fclose(f);
 }
-FileMode operator+(FileMode a, FileMode b)
+
+const FileMode FileMode::make(const char* mode)
 {
-	if (isLittleEndian())
-		return (FileMode)(((long)b << 8) | (long)a);
-	else
-		return (FileMode)((long)a << 8 | (long)b);
+	const auto len = strlen(mode);
+	if (len > 3) throw StreamException(20, "Invalid filemode");
+	char count = 0;
+	for (decltype(strlen(0)) i = 0; i < len; ++i) {
+		if (mode[i] == 'r' || mode[i] == 'w') count += 100;
+		else if (mode[i] == 'b') count += 10;
+		else if (mode[i] == '+') ++count;
+		else throw StreamException(10, "Invalid filemode");
+	}
+	if (count % 10 <= 1 && (count / 10) % 10 <= 1 && count <= 111)
+		return FileMode(mode);
+	else 
+		throw StreamException(2, "Invalid filemode");
+
 }
-
-

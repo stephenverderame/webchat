@@ -68,17 +68,17 @@ public:
  * Object for basic socket operations
  */
 class Connection {
-	friend class SSLSocket; //need to pass sock to SSL methods
+	friend class SSLSocket; ///< need to pass sock to SSL methods
 	friend class SSLListener;
 	friend class FD;
 private:
 	static FD readFd;
 	socket_t sock;
-	//Invariant: sock is INVALID_SOCKET if it is not open
+	///< Invariant: sock is INVALID_SOCKET if it is not open
 	Address addr;
 	FDMethod method;
 
-	//Invariant: nullptr if it is not set
+	///Invariant: nullptr if it is not set
 	std::function<void(Connection&)> onclose;
 public:
 	Connection();

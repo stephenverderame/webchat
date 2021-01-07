@@ -1,14 +1,24 @@
 #pragma once
 #include "Streamable.h"
-enum class FileMode : long {
-	read = 'r',
-	write = 'w',
-	append = 'a',
-	binary = 'b',
-	update = '+'
+class FileMode {
+private:
+	const char* const mode;
+	FileMode(const char* mode) : mode(mode) {}
+public:
+	const static FileMode read, write, append, openReadWrite, readWrite, readAppend,
+		read_b, write_b, append_b, openReadWrite_b, readWrite_b, readAppend_b;
+
+	inline const char* const getMode() const noexcept { return mode; }
+
+	/**
+	 * Creates a fileMode from the given string if it is valid
+	 * 
+	 * @param mode the String representing a file mode
+	 * @return a FileMode representing the specified mode
+	 * @throw StreamException on error
+	 */
+	static const FileMode make(const char* mode);
 };
-FileMode operator+(FileMode a, FileMode b);
-inline FileMode& operator+=(FileMode& a, FileMode b);
 class File : public Streamable
 {
 private:
@@ -20,17 +30,11 @@ protected:
 	int minAvailableBytes() const override;
 	bool nvi_available() const override;
 
-	const char * fMode(FileMode& m) const;
 public:
-	File(const char * file, FileMode mode = FileMode::write + FileMode::update);
+	File(const char * file, FileMode mode = FileMode::readWrite);
 
-	//Syncs output buffer and closes file stream
+	///Syncs output buffer and closes file stream
 	~File();
 };
-inline FileMode & operator+=(FileMode & a, FileMode b)
-{
-	a = a + b;
-	return a;
-}
 
 

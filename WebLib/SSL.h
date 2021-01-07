@@ -5,9 +5,9 @@
 #include "openssl//err.h"
 #include "openssl//bio.h"
 #else
-#include "openssl\ssl.h"
-#include "openssl\err.h"
-#include "openssl\bio.h"
+#include <openssl/ssl.h>
+#include <openssl/err.h>
+#include <openssl/bio.h>
 #endif
 class openssl {
 public:

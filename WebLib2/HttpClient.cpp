@@ -5,22 +5,22 @@
 #include <array>
 #include "Coder.h"
 #include "File.h"
-struct HttpClient::impl
+#include <sstream>
+struct HttpHeaderBuilder::impl
 {
 	std::vector<std::pair<const char *, const char *>> headers;
-	const char * method = nullptr, * path = "", * resp = nullptr;	
 };
-HttpClient & HttpClient::path(const char * path)
+HttpRequestBuilder & HttpRequestBuilder::path(const char * path)
 {
-	pimpl->path = path;
+	this->requestPath = path;
 	return *this;
 }
-HttpClient & HttpClient::put(const char * header, const char * value)
+HttpHeaderBuilder & HttpHeaderBuilder::put(const char * header, const char * value)
 {
 	pimpl->headers.emplace_back(header, value);
 	return *this;
 }
-HttpClient & HttpClient::put(AutoHttpHeaders header)
+HttpHeaderBuilder & HttpHeaderBuilder::put(AutoHttpHeaders header)
 {
 	switch (header) {
 	case AutoHttpHeaders::AcceptedEncodings:
@@ -29,36 +29,48 @@ HttpClient & HttpClient::put(AutoHttpHeaders header)
 	}
 	return *this;
 }
-HttpClient & HttpClient::method(const char * method)
+HttpRequestBuilder & HttpRequestBuilder::method(const char * method)
 {
-	pimpl->method = method;
+	this->requestMethod = method;
 	return *this;
 }
-HttpClient & HttpClient::response(const char * response)
+HttpResponseBuilder & HttpResponseBuilder::response(const char * response)
 {
-	pimpl->resp = response;
+	this->respCode = response;
 	return *this;
 }
+HttpHeaderBuilder::~HttpHeaderBuilder() = default;
+HttpHeaderBuilder::HttpHeaderBuilder() : pimpl(std::make_unique<impl>()) {};
 Streamable & HttpClient::getStream()
 {
 	return *stream.get();
 }
-void HttpClient::bufferHeaders()
+void HttpClient::bufferHeaders(const HttpHeaderBuilder& builder)
 {
-	Streamable & str = *stream.get();
-	if (pimpl->resp != nullptr) {
-		str << "HTTP/1.1 " << pimpl->resp;
-		for (auto& p : pimpl->headers)
-			str << p.first << ": " << p.second << "\r\n";
-		str << (pimpl->headers.empty() ? "\r\n\r\n" : "\r\n");
-	}
-	else if (pimpl->method != nullptr) {
-		str << pimpl->method << " /" << pimpl->path << " HTTP/1.1\r\n";
-		for (auto& p : pimpl->headers)
-			str << p.first << ": " << p.second << "\r\n";
-		str << (pimpl->headers.empty() ? "\r\n\r\n" : "\r\n");
-	}
+	(*stream) << builder.build().str();
 }
+std::stringstream HttpResponseBuilder::build() const
+{
+	std::stringstream str;
+	str << "HTTP/1.1 " << this->respCode;
+	for (auto& p : pimpl->headers)
+		str << p.first << ": " << p.second << "\r\n";
+	str << (pimpl->headers.empty() ? "\r\n\r\n" : "\r\n");
+	return str;
+}
+HttpResponseBuilder::~HttpResponseBuilder() = default;
+HttpResponseBuilder::HttpResponseBuilder() : respCode(nullptr) {};
+std::stringstream HttpRequestBuilder::build() const
+{
+	std::stringstream str;
+	str << this->requestMethod << " /" << this->requestPath << " HTTP/1.1\r\n";
+	for (auto& p : pimpl->headers)
+		str << p.first << ": " << p.second << "\r\n";
+	str << (pimpl->headers.empty() ? "\r\n\r\n" : "\r\n");
+	return str;
+}
+HttpRequestBuilder::~HttpRequestBuilder() = default;
+HttpRequestBuilder::HttpRequestBuilder() : requestMethod(nullptr), requestPath("") {};
 void HttpClient::send()
 {
 	stream->pubsync();
@@ -148,17 +160,16 @@ HttpResponse HttpClient::getResponse()
 	return std::move(resp);
 	
 }
-HttpClient::HttpClient(std::unique_ptr<Streamable> && stream) : pimpl(std::make_unique<impl>()) {
-	attach(std::move(stream));
+HttpClient::HttpClient(std::unique_ptr<Streamable> && stream) : stream(std::move(stream)) {
 }
 
-HttpClient::HttpClient(HttpClient && client) : pimpl(std::move(client.pimpl))
+HttpClient::HttpClient(HttpClient && client) : stream(std::move(client.stream))
 {
 }
 
 HttpClient & HttpClient::operator=(HttpClient && c)
 {
-	pimpl.swap(c.pimpl);
+	stream.swap(c.stream);
 	return *this;
 }
 

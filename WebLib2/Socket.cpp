@@ -32,7 +32,7 @@ Socket::Socket(Connection&& s)
 	con = std::move(s);
 }
 
-void Socket::open() throw(StreamException)
+void Socket::open() 
 {
 	con.connectSocket();
 }

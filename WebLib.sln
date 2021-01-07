@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WebLib2", "WebLib2\WebLib2.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestWL2", "TestWL2\TestWL2.vcxproj", "{486F99B3-183E-4C36-9C27-C74746D0E2D0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnitTestTest", "UnitTestTest\UnitTestTest.vcxproj", "{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -61,6 +63,14 @@ Global
 		{486F99B3-183E-4C36-9C27-C74746D0E2D0}.Release|x64.Build.0 = Release|x64
 		{486F99B3-183E-4C36-9C27-C74746D0E2D0}.Release|x86.ActiveCfg = Release|Win32
 		{486F99B3-183E-4C36-9C27-C74746D0E2D0}.Release|x86.Build.0 = Release|Win32
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Debug|x64.ActiveCfg = Debug|x64
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Debug|x64.Build.0 = Debug|x64
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Debug|x86.ActiveCfg = Debug|Win32
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Debug|x86.Build.0 = Debug|Win32
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Release|x64.ActiveCfg = Release|x64
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Release|x64.Build.0 = Release|x64
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Release|x86.ActiveCfg = Release|Win32
+		{EEBA6B00-BEBA-449B-AF89-2A32CDA5C909}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

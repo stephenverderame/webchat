@@ -319,11 +319,11 @@ void Streamable::purge()
 #include "File.h"
 #include "SSLSocket.h"
 
-std::unique_ptr<Streamable> make_stream(const char* uri) throw(StreamException)
+std::unique_ptr<Streamable> make_stream(const char* uri)
 {
 	char scheme[50];
 	size_t schemeLen = strchr(uri, ':') - uri;
-	if (schemeLen >= strlen(uri)) return nullptr;
+	if (schemeLen >= strlen(uri)) throw StreamException(10, "Invalid uri");
 	memcpy(scheme, uri, schemeLen);
 	scheme[schemeLen] = '\0';
 	const char* port = strrchr(uri, ':') + 1;
@@ -342,14 +342,11 @@ std::unique_ptr<Streamable> make_stream(const char* uri) throw(StreamException)
 		return std::make_unique<SSLSocket>(std::move(con));
 	}
 	else if(strcmp(scheme, "file") == 0) {
-		union {
-			long i;
-			char b[4];
-		} fm;
-		if(usePort) strcpy(fm.b, port);
-		return std::make_unique<File>(host, usePort ? (FileMode)fm.i : FileMode::write + FileMode::update);
+		char fm[7];
+		if(usePort) strcpy(fm, port);
+		return std::make_unique<File>(host, usePort ? FileMode::make(fm) : FileMode::readWrite);
 	}
-	return nullptr;
+	throw StreamException(50, "Unknown Stream Type");
 }
 
 std::ostream& operator<<(std::ostream& strm, const Streamable& other) throw(StreamException)

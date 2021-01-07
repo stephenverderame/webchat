@@ -33,7 +33,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -46,7 +46,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -69,14 +69,20 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;C:\Users\stephen\Documents\Visual Studio 2015\Projects\Emails\Emails;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Users\stephen\Documents\Visual Studio 2015\Projects\WebLib\WebLib;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>C:\Users\SEV\Documents\Coding Stuff\desktop\openssl;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
