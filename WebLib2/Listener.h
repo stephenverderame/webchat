@@ -41,6 +41,6 @@ public:
 	 * @param method type of listener TCP or UDP
 	 */
 	SocketListener(port_t port, FDMethod method);
-	std::unique_ptr<Streamable> accept() throw(StreamException) override;
+	std::unique_ptr<Streamable> accept()  override;
 };
 

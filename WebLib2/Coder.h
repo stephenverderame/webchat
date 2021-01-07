@@ -7,21 +7,21 @@ class Coder : public Streamable
 protected:
 	const Streamable * str;
 protected:
-	virtual int nvi_encode() throw(StreamException) = 0;
-	virtual int nvi_decode() throw(StreamException) = 0;
+	virtual int nvi_encode()  = 0;
+	virtual int nvi_decode()  = 0;
 public:
 	/**
 	 * Primes the encoder and stores the encoded data in this Streams input buffer
 	 * @return the amount of encoded data in the input stream
 	 * @throw StreamException on error
 	 */
-	int encode() throw(StreamException);
+	int encode() ;
 	/**
 	 * Primes the decoder and stores the decoded data in this Streams input buffer
 	 * @return the amount of encoded data in the input stream
 	 * @throw StreamException on error
 	 */
-	int decode() throw(StreamException);
+	int decode() ;
 
 	/**
 	 * Constructs a Coder with the specified Stream's input buffer as the Coder input
@@ -41,8 +41,8 @@ protected:
 	int minAvailableBytes() const override;
 	bool nvi_available() const override;
 
-	int nvi_encode() throw(StreamException) override;
-	int nvi_decode() throw(StreamException) override;
+	int nvi_encode()  override;
+	int nvi_decode()  override;
 public:
 	GzipCoder(const Streamable * input) : Coder(input) {}
 	GzipCoder() : Coder() {}

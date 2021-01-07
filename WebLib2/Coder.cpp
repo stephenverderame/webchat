@@ -49,7 +49,7 @@ bool GzipCoder::nvi_available() const
 	return false;
 }
 
-int GzipCoder::nvi_encode() throw(StreamException)
+int GzipCoder::nvi_encode() 
 {
 	z_stream zs;
 	memset(&zs, Z_NULL, sizeof(z_stream));
@@ -81,7 +81,7 @@ int GzipCoder::nvi_encode() throw(StreamException)
 	return zs.total_out;
 }
 
-int GzipCoder::nvi_decode() throw(StreamException)
+int GzipCoder::nvi_decode() 
 {
 	z_stream zs;
 	memset(&zs, Z_NULL, sizeof(z_stream));

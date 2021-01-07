@@ -103,14 +103,14 @@ public:
 	 * Binds the socket on the specified port and opens it for listening
 	 * @throw ConnectionException on exception
 	 */
-	inline void bindSocket() throw(StreamException);
+	inline void bindSocket() ;
 	/**
 	 * Accepts a socket 
 	 * Requires that this connection be bound and listening
 	 * @return an incoming socket connection
 	 * @throw ConnectionException on exception
 	 */
-	inline Connection acceptSocket() throw(StreamException);
+	inline Connection acceptSocket() ;
 	/**
 	 * Determines if the socket is valid
 	 * @return true if this is a valid and open socket
@@ -122,7 +122,7 @@ public:
 	 * Connects the socket
 	 * @throw ConnectionException on exception
 	 */
-	inline void connectSocket() throw(StreamException);
+	inline void connectSocket() ;
 
 	inline void nonblock(bool enable);
 
@@ -133,7 +133,7 @@ public:
 	 * @return the amount of bytes available
 	 * @throw ConnectionException on failure
 	 */
-	inline int available() const throw(StreamException);
+	inline int available() const ;
 
 	/**
 	 * Gets the socket operator of param
@@ -141,14 +141,14 @@ public:
 	 * @return the reutn of getsockopt
 	 * @throw ConnectionException on failure
 	 */
-	inline int getSockOpt(int param) const throw(StreamException);
+	inline int getSockOpt(int param) const ;
 
 	/**
 	 * Gets the last error code and clears the error state
 	 * @return last error code
 	 * @throw ConnectionException on failure
 	 */
-	inline int errorCode() const throw(StreamException);
+	inline int errorCode() const ;
 
 	/**
 	 * Sets the socket operator to val
@@ -156,7 +156,7 @@ public:
 	 * @param val the value to set it to
 	 * @throw ConnectionException on failure
 	 */
-	inline int setSockOpt(int param, int val) throw(StreamException);
+	inline int setSockOpt(int param, int val) ;
 
 	/**
 	 * Gets the onclose callback function
@@ -172,7 +172,7 @@ public:
 	 * @return the amount of data actually sent
 	 * @throw StreamException on error
 	 */
-	inline int send(const char* buf, size_t len) const throw(StreamException);
+	inline int send(const char* buf, size_t len) const ;
 
 	/**
 	 * Receives length amount of bytes at buf
@@ -181,7 +181,7 @@ public:
 	 * @return the amount read
 	 * @throw StreamException on error
 	 */
-	inline int recv(char* buf, size_t len) const throw(StreamException);
+	inline int recv(char* buf, size_t len) const ;
 
 	/** 
 	 * Gets a ReadFDSET for all Connections
@@ -199,12 +199,12 @@ inline void Connection::close()
 	}
 	sock = INVALID_SOCKET;
 }
-inline void Connection::bindSocket() throw(StreamException)
+inline void Connection::bindSocket() 
 {
 	if(bind(sock, (sockaddr*)&addr.address, sizeof(addr.address)) != 0) throw StreamException(WSAGetLastError(), "WSA error binding socket");
 	if(listen(sock, SOMAXCONN) != 0) throw StreamException(WSAGetLastError(), "WSA error listening socket");
 }
-inline Connection Connection::acceptSocket() throw(StreamException)
+inline Connection Connection::acceptSocket() 
 {
 	Connection con;
 	int sz = sizeof(sockaddr_in);
@@ -216,7 +216,7 @@ inline bool Connection::isValid() const noexcept
 {
 	return sock != INVALID_SOCKET;
 }
-inline void Connection::connectSocket() throw(StreamException)
+inline void Connection::connectSocket() 
 {
 	if (connect(sock, (sockaddr*)&addr.address, sizeof(addr.address)) != 0) throw StreamException(WSAGetLastError(), "WSA error connecting socket");
 }
@@ -229,30 +229,30 @@ inline Address Connection::getAddr() const
 {
 	return addr;
 }
-inline int Connection::available() const throw(StreamException)
+inline int Connection::available() const 
 {
 	u_long bytes;
 	if(SOCKET_ERROR == ioctlsocket(sock, FIONREAD, &bytes)) throw StreamException(WSAGetLastError(), "ioctl failure");
 	return bytes;
 }
-inline int Connection::getSockOpt(int param) const throw(StreamException)
+inline int Connection::getSockOpt(int param) const 
 {
 	int sz = sizeof(param);
 	int out;
 	if ((out = getsockopt(sock, SOL_SOCKET, param, (char*)&param, &sz)) == SOCKET_ERROR) throw StreamException(WSAGetLastError(), "Error getting socket op");
 	return out;
 }
-inline int Connection::errorCode() const throw(StreamException)
+inline int Connection::errorCode() const 
 {
 	return getSockOpt(SO_ERROR);
 }
-inline int Connection::setSockOpt(int param, int val) throw(StreamException)
+inline int Connection::setSockOpt(int param, int val) 
 {
 	int err;
 	if ((err = setsockopt(sock, SOL_SOCKET, param, (char*)&val, sizeof(val))) == SOCKET_ERROR) throw StreamException(WSAGetLastError(), "Error setting socket operator");
 	return err;
 }
-inline int Connection::send(const char* buf, size_t len) const throw(StreamException)
+inline int Connection::send(const char* buf, size_t len) const 
 {
 	int sent;
 	switch(method) {
@@ -264,7 +264,7 @@ inline int Connection::send(const char* buf, size_t len) const throw(StreamExcep
 	if (sent < 0) throw StreamException(WSAGetLastError(), "Error sending data");
 	return sent;
 }
-inline int Connection::recv(char* buf, size_t len) const throw(StreamException)
+inline int Connection::recv(char* buf, size_t len) const 
 {
 	int sz = sizeof(sockaddr_in);
 	int rec;
@@ -358,5 +358,5 @@ public:
 	 * Opens the underlying connection
 	 * @throw StreamException on error
 	 */
-	virtual void open() throw(StreamException) = 0;
+	virtual void open()  = 0;
 };

@@ -15,7 +15,7 @@ SSLListener::SSLListener(const char* key, const char* cert, port_t port) : con(C
 	con.bindSocket();
 }
 
-std::unique_ptr<Streamable> SSLListener::accept() throw(StreamException)
+std::unique_ptr<Streamable> SSLListener::accept() 
 { 
 	Connection c = con.acceptSocket();
 	SSL* ssl;
@@ -36,7 +36,7 @@ SocketListener::SocketListener(port_t port, FDMethod method) : con(Connection(Ad
 	con.bindSocket();
 }
 
-std::unique_ptr<Streamable> SocketListener::accept() throw(StreamException)
+std::unique_ptr<Streamable> SocketListener::accept() 
 {
 	return std::make_unique<Socket>(con.acceptSocket());
 }

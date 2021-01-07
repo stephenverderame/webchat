@@ -140,7 +140,7 @@ void Streamable::setgetp(char * begin, char * next, char * end)
 //	setgp(begin);
 }
 
-int Streamable::syncOutputBuffer() throw(StreamException)
+int Streamable::syncOutputBuffer() 
 {
 	int count = 0, ret = 0;
 	do {
@@ -152,7 +152,7 @@ int Streamable::syncOutputBuffer() throw(StreamException)
 	return 0;
 }
 
-int Streamable::syncInputBuffer() throw(StreamException)
+int Streamable::syncInputBuffer() 
 {
 	long ret = 0;
 	long long read = 0;
@@ -196,7 +196,7 @@ StreamView Streamable::view(std::streamsize start, std::streamsize end, std::ios
 	}
 }
 
-void Streamable::write(const Streamable & other, std::ios_base::openmode buffer) throw(StreamException)
+void Streamable::write(const Streamable & other, std::ios_base::openmode buffer) 
 {
 	if (buffer == std::ios::in) {
 		xsputn(other.icurrent_c(), other.iend_c() - other.icurrent_c());
@@ -217,7 +217,7 @@ void Streamable::remove(std::streamsize start, std::streamsize end, std::ios::op
 	}
 }
 
-std::streamsize Streamable::fetchUntil(const char* delim, std::streamsize packetSize, bool quitOnEmpty) throw(StreamException)
+std::streamsize Streamable::fetchUntil(const char* delim, std::streamsize packetSize, bool quitOnEmpty) 
 {
 	int ret = 0;
 	auto i = gptr() - eback();
@@ -349,7 +349,7 @@ std::unique_ptr<Streamable> make_stream(const char* uri)
 	throw StreamException(50, "Unknown Stream Type");
 }
 
-std::ostream& operator<<(std::ostream& strm, const Streamable& other) throw(StreamException)
+std::ostream& operator<<(std::ostream& strm, const Streamable& other) 
 {
 	strm.write(other.icurrent_c(), other.iend_c() - other.icurrent_c());
 	return strm;
